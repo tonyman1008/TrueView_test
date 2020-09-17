@@ -10,13 +10,32 @@ var container, stats;
 var camera, scene, renderer;
 
 var targetObj;
-var imgCount = 30;
+var imgCount = 0;
 var imgOffset = 0;
-var imgHeight = 3612;
-var tex = new THREE.TextureLoader().load("img/texture.png");
+var imgHeight = imgCount * 600;
+var tex;
+
+// init
+getUrlImageCount();
+loadImage();
+imgHeight = imgCount * 600;
+console.log("imgHeight = ", imgHeight, " imgCount = ", imgCount);
 
 init();
 animate();
+
+function getUrlImageCount() {
+  var getUrlStr = location.href;
+  var url = new URL(getUrlStr);
+  imgCount = url.searchParams.get("count");
+}
+
+function loadImage(callback) {
+  var imgPath = "img/" + imgCount + ".png";
+  tex = new THREE.TextureLoader().load(imgPath,function(tex){
+      console.log(tex.image.width,tex.image.height);
+  });
+}
 
 function init() {
   container = document.createElement("div");
@@ -101,16 +120,16 @@ function init() {
 
   // targetObj
   var geometry = new THREE.PlaneGeometry(200, 150, 4, 4);
-  tex.repeat.x = 800 / 4010;
+  tex.repeat.x = 800 / 800;
   tex.repeat.y = 600 / imgHeight;
-  // tex.offset.x = (0 / 4010) * tex.repeat.x;
-  // tex.offset.y = ((imgOffset * 600) / 3612) * tex.repeat.y;
+  const offsetY = imgCount - imgOffset - 1;
+  tex.offset.x = 0;
+  tex.offset.y = offsetY / imgCount;
 
   var material = new THREE.MeshBasicMaterial({
     map: tex,
     transparent: true,
   });
-  console.log(material);
   targetObj = new THREE.Mesh(geometry, material);
   targetObj.position.y = 275;
   scene.add(targetObj);
@@ -119,33 +138,35 @@ function init() {
 }
 
 function rotateObj(img_w, img_h, single_img_w, single_img_h) {
-  if (imgOffset >= imgCount) {
-    imgOffset = 0;
-  }
+  //   if (imgOffset >= imgCount) {
+  //     imgOffset = 0;
+  //   }
 
-  tex.repeat.x = single_img_w / img_w;
-  tex.repeat.y = single_img_h / img_h;
-  const offsetX = imgOffset % 5;
-  const offsetY = 5 - Math.floor(imgOffset / 5);
-  tex.offset.x = offsetX / 5;
-  tex.offset.y = offsetY / 6;
+  ////texture packer format
+  //   const offsetX = imgOffset % 5;
+  //   const offsetY = 5 - Math.floor(imgOffset / 5);
+  //   tex.offset.x = offsetX / 5;
+  //   tex.offset.y = offsetY / 6;
+
+  //long texture
+  const offsetY = imgCount - imgOffset - 1;
+  tex.offset.x = 0;
+  tex.offset.y = offsetY / imgCount;
 
   targetObj.material.map = tex;
   targetObj.material.needsUpdate = true;
 }
 
 function isAngleChange() {
-  let angle = THREE.MathUtils.radToDeg(targetObj.rotation.y) % 360;
+  let angle = THREE.Math.radToDeg(targetObj.rotation.y) % 360;
   if (angle < 0) angle += 360;
   let tmpImgOffset = Math.floor(angle / Math.ceil(360 / imgCount));
 
-  // console.log(tmpImgOffset);
-  // console.log("mod", tmpImgOffset % 3);
   if (tmpImgOffset == imgOffset) {
     return;
   } else {
     imgOffset = tmpImgOffset;
-    rotateObj(4010, 3612, 800, 600);
+    rotateObj(800, imgHeight, 800, 600);
   }
 }
 
@@ -163,6 +184,7 @@ function animate() {
 
   renderer.render(scene, camera);
   stats.update();
+
   //always face to camera
   // mesh.lookAt(camera.position);
   targetObj.rotation.y = Math.atan2(
