@@ -112,7 +112,7 @@ function init() {
 
   var loader = new THREE.ObjectLoader();
   loader.load(
-    "./node_modules/three/examples/models/json/lightmap/lightmap.json",
+    "./models/json/lightmap/lightmap.json",
     function (object) {
       scene.add(object);
     }
