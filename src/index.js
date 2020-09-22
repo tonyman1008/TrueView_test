@@ -1,6 +1,5 @@
 import * as THREE from "../node_modules/three/build/three.module.js";
 import Stats from "../node_modules/three/examples/jsm/libs/stats.module.js";
-
 import { OrbitControls } from "../node_modules/three/examples/jsm/controls/OrbitControls.js";
 
 var SCREEN_WIDTH = window.innerWidth;
@@ -9,35 +8,30 @@ var SCREEN_HEIGHT = window.innerHeight;
 var container, stats;
 var camera, scene, renderer;
 
+const IMG_COUNT = 30;
+const NUMBER_OF_ROW = 5;
+const NUMBER_OF_COLUMN = 6;
+const SINGLE_IMG_WIDTH = 800;
+const SINGLE_IMG_HEIGHT = 600;
+const IMG_NAME = "butterfly30";
+const IMG_PATH = "img/" + IMG_NAME + ".png";
 var targetObj;
-var imgCount = 28;
-var imgOffset = 0;
-var imgHeight = imgCount * 1080;
 var tex;
 
-// init
-// getUrlImageCount();
-loadImage();
-imgHeight = imgCount * 1080;
-console.log("imgHeight = ", imgHeight, " imgCount = ", imgCount);
+var imgIndex = 0;
+var imgHeight = 0;
+var imgWidth = 0;
 
-init();
+createScene();
 animate();
 
 function getUrlImageCount() {
   var getUrlStr = location.href;
   var url = new URL(getUrlStr);
-  imgCount = url.searchParams.get("count");
+  IMG_COUNT = url.searchParams.get("count");
 }
 
-function loadImage(callback) {
-  var imgPath = "img/dragon"  + ".png";
-  tex = new THREE.TextureLoader().load(imgPath,function(tex){
-      console.log(tex.image.width,tex.image.height);
-  });
-}
-
-function init() {
+function createScene() {
   container = document.createElement("div");
   document.body.appendChild(container);
 
@@ -89,7 +83,6 @@ function init() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
   container.appendChild(renderer.domElement);
-  // renderer.outputEncoding = THREE.sRGBEncoding;
 
   // CONTROLS
 
@@ -100,8 +93,6 @@ function init() {
   controls.minPolarAngle = Math.PI / 2;
   controls.maxPolarAngle = Math.PI / 2;
   controls.update();
-  //keyboard control
-  // controls.enableKeys = true;
 
   // STATS
 
@@ -118,13 +109,27 @@ function init() {
     }
   );
 
+  //init object
+  initObj();
+
+  window.addEventListener("resize", onWindowResize, false);
+}
+
+function initObj() {
+
+  tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
+    imgWidth = tex.image.width;
+    imgHeight = tex.image.height;
+    tex.repeat.x = SINGLE_IMG_WIDTH / imgWidth;
+    tex.repeat.y = SINGLE_IMG_HEIGHT / imgHeight;
+    console.log("imgWidth = ", imgWidth, " imgHeight = ", tex.image.height);
+  });
+
   // targetObj
-  var geometry = new THREE.PlaneGeometry(1920/8, 1080/8, 4, 4);
-  tex.repeat.x = 1920 / 1920;
-  tex.repeat.y = 1080 / imgHeight;
-  const offsetY = imgCount - imgOffset - 1;
+  var geometry = new THREE.PlaneGeometry(200, 150, 4, 4);
+  const offsetY = NUMBER_OF_ROW - Math.floor(imgIndex / NUMBER_OF_ROW);
   tex.offset.x = 0;
-  tex.offset.y = offsetY / imgCount;
+  tex.offset.y = offsetY / NUMBER_OF_ROW;
 
   var material = new THREE.MeshBasicMaterial({
     map: tex,
@@ -133,39 +138,31 @@ function init() {
   targetObj = new THREE.Mesh(geometry, material);
   targetObj.position.y = 275;
   scene.add(targetObj);
-
-  window.addEventListener("resize", onWindowResize, false);
 }
 
-function rotateObj(img_w, img_h, single_img_w, single_img_h) {
-  //   if (imgOffset >= imgCount) {
-  //     imgOffset = 0;
-  //   }
+function rotateObj() {
 
-  ////texture packer format
-  //   const offsetX = imgOffset % 5;
-  //   const offsetY = 5 - Math.floor(imgOffset / 5);
-  //   tex.offset.x = offsetX / 5;
-  //   tex.offset.y = offsetY / 6;
-
-  //long texture
-  const offsetY = imgCount - imgOffset - 1;
-  tex.offset.x = 0;
-  tex.offset.y = offsetY / imgCount;
+  const offsetX = imgIndex % NUMBER_OF_COLUMN;
+  const offsetY = NUMBER_OF_ROW - Math.floor(imgIndex / NUMBER_OF_COLUMN);
+  console.log(imgIndex);
+  tex.offset.x = offsetX / NUMBER_OF_COLUMN;
+  tex.offset.y = offsetY / NUMBER_OF_ROW;
+  // console.log(tex.offset.y)
 
   targetObj.material.map = tex;
   targetObj.material.needsUpdate = true;
 }
 
 function isAngleChange() {
+
   let angle = THREE.Math.radToDeg(targetObj.rotation.y) % 360;
   if (angle < 0) angle += 360;
-  let tmpImgOffset = Math.floor(angle / Math.ceil(360 / imgCount));
-  if (tmpImgOffset == imgOffset) {
+  let tmpImgIndex = Math.floor(angle / Math.ceil(360 / IMG_COUNT));
+  if (tmpImgIndex == imgIndex) {
     return;
   } else {
-    imgOffset = tmpImgOffset;
-    rotateObj(1920, imgHeight, 1920, 1080);
+    imgIndex = tmpImgIndex;
+    rotateObj();
   }
 }
 
