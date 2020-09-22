@@ -10,15 +10,15 @@ var container, stats;
 var camera, scene, renderer;
 
 var targetObj;
-var imgCount = 0;
+var imgCount = 28;
 var imgOffset = 0;
-var imgHeight = imgCount * 600;
+var imgHeight = imgCount * 1080;
 var tex;
 
 // init
-getUrlImageCount();
+// getUrlImageCount();
 loadImage();
-imgHeight = imgCount * 600;
+imgHeight = imgCount * 1080;
 console.log("imgHeight = ", imgHeight, " imgCount = ", imgCount);
 
 init();
@@ -31,7 +31,7 @@ function getUrlImageCount() {
 }
 
 function loadImage(callback) {
-  var imgPath = "img/" + imgCount + ".png";
+  var imgPath = "img/dragon"  + ".png";
   tex = new THREE.TextureLoader().load(imgPath,function(tex){
       console.log(tex.image.width,tex.image.height);
   });
@@ -119,9 +119,9 @@ function init() {
   );
 
   // targetObj
-  var geometry = new THREE.PlaneGeometry(200, 150, 4, 4);
-  tex.repeat.x = 800 / 800;
-  tex.repeat.y = 600 / imgHeight;
+  var geometry = new THREE.PlaneGeometry(1920/8, 1080/8, 4, 4);
+  tex.repeat.x = 1920 / 1920;
+  tex.repeat.y = 1080 / imgHeight;
   const offsetY = imgCount - imgOffset - 1;
   tex.offset.x = 0;
   tex.offset.y = offsetY / imgCount;
@@ -161,12 +161,11 @@ function isAngleChange() {
   let angle = THREE.Math.radToDeg(targetObj.rotation.y) % 360;
   if (angle < 0) angle += 360;
   let tmpImgOffset = Math.floor(angle / Math.ceil(360 / imgCount));
-
   if (tmpImgOffset == imgOffset) {
     return;
   } else {
     imgOffset = tmpImgOffset;
-    rotateObj(800, imgHeight, 800, 600);
+    rotateObj(1920, imgHeight, 1920, 1080);
   }
 }
 
