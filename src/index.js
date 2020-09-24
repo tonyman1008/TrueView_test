@@ -8,12 +8,12 @@ var SCREEN_HEIGHT = window.innerHeight;
 var container, stats;
 var camera, scene, renderer;
 
-const IMG_COUNT = 20; // need user input
+const IMG_COUNT = 30; // need user input
 const NUMBER_OF_ROW = 5; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
 const SINGLE_IMG_WIDTH = 800; //constraint
 const SINGLE_IMG_HEIGHT = 600; // constraint
-const IMG_NAME = "butterfly20"; // need user input
+const IMG_NAME = "dragon30-nolight"; // need user input
 const IMG_PATH = "img/" + IMG_NAME + ".png";
 var targetObj;
 var tex;
@@ -88,7 +88,7 @@ function createScene() {
 
   var controls = new OrbitControls(camera, renderer.domElement);
   controls.enableZoom = false;
-  controls.target.set(0, 275, 0);
+  controls.target.set(0, 263, 0);
   //lock y asix
   controls.minPolarAngle = Math.PI / 2;
   controls.maxPolarAngle = Math.PI / 2;
@@ -136,7 +136,7 @@ function initObj() {
     transparent: true,
   });
   targetObj = new THREE.Mesh(geometry, material);
-  targetObj.position.y = 275;
+  targetObj.position.y = 243;
   scene.add(targetObj);
 }
 
