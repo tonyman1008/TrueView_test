@@ -142,12 +142,13 @@ function initObj() {
 
 function rotateObj() {
 
-  const offsetX = imgIndex % NUMBER_OF_COLUMN;
-  const offsetY = NUMBER_OF_ROW - Math.floor(imgIndex / NUMBER_OF_COLUMN);
-  console.log(imgIndex);
-  tex.offset.x = offsetX / NUMBER_OF_COLUMN;
-  tex.offset.y = offsetY / NUMBER_OF_ROW;
-  // console.log(tex.offset.y)
+  const offsetX = imgIndex % NUMBER_OF_ROW;
+  const offsetY = NUMBER_OF_COLUMN - 1 - Math.floor(imgIndex / NUMBER_OF_ROW);
+
+  tex.offset.x = offsetX / NUMBER_OF_ROW;
+  tex.offset.y = offsetY / NUMBER_OF_COLUMN;
+  console.log("imgIndex =", imgIndex);
+  console.log("offsetX =", tex.offset.x, "offsetY =", tex.offset.y)
 
   targetObj.material.map = tex;
   targetObj.material.needsUpdate = true;
