@@ -1,19 +1,20 @@
 import * as THREE from "../node_modules/three/build/three.module.js";
 import Stats from "../node_modules/three/examples/jsm/libs/stats.module.js";
 import { OrbitControls } from "../node_modules/three/examples/jsm/controls/OrbitControls.js";
+import { GUI } from "../node_modules/three/examples/jsm/libs/dat.gui.module.js";
 
 var SCREEN_WIDTH = window.innerWidth;
 var SCREEN_HEIGHT = window.innerHeight;
 
 var container, stats;
-var camera, scene, renderer;
+var camera, scene, renderer, orbitControler;
 
-const IMG_COUNT = 30; // need user input
+const IMG_COUNT = 24; // need user input
 const NUMBER_OF_ROW = 5; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
 const SINGLE_IMG_WIDTH = 800; //constraint
 const SINGLE_IMG_HEIGHT = 600; // constraint
-const IMG_NAME = "dragon30-nolight"; // need user input
+const IMG_NAME = "LV"; // need user input
 const IMG_PATH = "img/" + IMG_NAME + ".png";
 var targetObj;
 var tex;
@@ -21,6 +22,12 @@ var tex;
 var imgIndex = 0;
 var imgHeight = 0;
 var imgWidth = 0;
+
+var guiParams = {
+  distanceToObj: 0,
+  PolarAngle: 0,
+  position: 0,
+};
 
 createScene();
 animate();
@@ -43,7 +50,7 @@ function createScene() {
     1,
     10000
   );
-  camera.position.set(700, 200, -500);
+  camera.position.set(700, 243, -500);
 
   // SCENE
 
@@ -88,11 +95,12 @@ function createScene() {
 
   var controls = new OrbitControls(camera, renderer.domElement);
   controls.enableZoom = false;
-  controls.target.set(0, 263, 0);
+  controls.target.set(0, 243, 0);
   //lock y asix
-  controls.minPolarAngle = Math.PI / 2;
-  controls.maxPolarAngle = Math.PI / 2;
+  // controls.minPolarAngle = Math.PI / 2;
+  // controls.maxPolarAngle = Math.PI / 2;
   controls.update();
+  orbitControler = controls;
 
   // STATS
 
@@ -102,21 +110,43 @@ function createScene() {
   // MODEL
 
   var loader = new THREE.ObjectLoader();
-  loader.load(
-    "./models/json/lightmap/lightmap.json",
-    function (object) {
-      scene.add(object);
-    }
-  );
+  loader.load("./models/json/lightmap/lightmap.json", function (object) {
+    scene.add(object);
+  });
+
+  window.addEventListener("resize", onWindowResize, false);
+  document.addEventListener("keydown", onDocumentKeyDown, false);
 
   //init object
   initObj();
+  initGUI();
+}
 
-  window.addEventListener("resize", onWindowResize, false);
+function onDocumentKeyDown(event) {
+  var delta = 10;
+  var code = event.code;
+  if (code == "KeyW") {
+    camera.translateZ(-delta);
+  } else if (code == "KeyS") {
+    camera.translateZ(delta);
+  } else if (code == "KeyA") {
+    camera.translateX(-delta);
+  } else if (code == "KeyD") {
+    camera.translateX(delta);
+  }
+}
+
+function initGUI() {
+  //gui
+  var gui = new GUI();
+  gui.width = 300;
+
+  gui.add(guiParams, "distanceToObj").name("Distance").listen();
+  gui.add(guiParams, "PolarAngle").name("Polar Angle(deg)").listen();
+  gui.add(camera.position, "y").name("Camera Pos Y").listen();
 }
 
 function initObj() {
-
   tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
     imgWidth = tex.image.width;
     imgHeight = tex.image.height;
@@ -141,21 +171,19 @@ function initObj() {
 }
 
 function rotateObj() {
-
   const offsetX = imgIndex % NUMBER_OF_ROW;
   const offsetY = NUMBER_OF_COLUMN - 1 - Math.floor(imgIndex / NUMBER_OF_ROW);
 
   tex.offset.x = offsetX / NUMBER_OF_ROW;
   tex.offset.y = offsetY / NUMBER_OF_COLUMN;
   console.log("imgIndex =", imgIndex);
-  console.log("offsetX =", tex.offset.x, "offsetY =", tex.offset.y)
+  console.log("offsetX =", tex.offset.x, "offsetY =", tex.offset.y);
 
   targetObj.material.map = tex;
   targetObj.material.needsUpdate = true;
 }
 
 function isAngleChange() {
-
   let angle = THREE.Math.radToDeg(targetObj.rotation.y) % 360;
   if (angle < 0) angle += 360;
   let tmpImgIndex = Math.floor(angle / Math.ceil(360 / IMG_COUNT));
@@ -190,4 +218,8 @@ function animate() {
   );
 
   isAngleChange();
+
+  //camera control gui
+  guiParams.distanceToObj = camera.position.distanceTo(targetObj.position);
+  guiParams.PolarAngle = THREE.Math.radToDeg(orbitControler.getPolarAngle());
 }
