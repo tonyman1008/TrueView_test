@@ -159,7 +159,7 @@ function initGUI() {
 }
 
 function createTrueViewObj(objIndex) {
-   const IMG_PATH = "asset/TrueViewObj/" + IMG_NAMES[objIndex] + (objIndex + 1) + ".png";
+   const IMG_PATH = "asset/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
    var tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
       imgWidth = tex.image.width;
       imgHeight = tex.image.height;
