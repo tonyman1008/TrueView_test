@@ -2,6 +2,7 @@ import * as THREE from "../node_modules/three/build/three.module.js";
 import Stats from "../node_modules/three/examples/jsm/libs/stats.module.js";
 import { OrbitControls } from "../node_modules/three/examples/jsm/controls/OrbitControls.js";
 import { GUI } from "../node_modules/three/examples/jsm/libs/dat.gui.module.js";
+import BasicNoLight from "./shader/BasicNoLight/index.js";
 
 var SCREEN_WIDTH = window.innerWidth;
 var SCREEN_HEIGHT = window.innerHeight;
@@ -14,10 +15,10 @@ const IMG_COUNT = 24; // need user input
 const NUMBER_OF_ROW = 5; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
 
-const TrueViewObj = function (ImgName, TargetObj, Texture, ImgIndex = 0, BaseObj) {
+const TrueViewObj = function (ImgName, TargetObj, Shader, ImgIndex = 0, BaseObj) {
    this.ImgName = ImgName;
    this.TargetObj = TargetObj;
-   this.Texture = Texture;
+   this.Shader = Shader;
    this.ImgIndex = ImgIndex;
    this.BaseObj = BaseObj;
 };
@@ -172,15 +173,20 @@ function createTrueViewObj(objIndex) {
 
    // targetObj
    const TrueViewGeometry = new THREE.PlaneGeometry(200, 150, 4, 4);
-   // const offsetY = NUMBER_OF_ROW - Math.floor(2 / NUMBER_OF_ROW);
-   // tex.offset.x = 0;
-   // tex.offset.y = offsetY / NUMBER_OF_ROW;
+	const shader = new BasicNoLight();
+	shader.uniforms.map.value = tex;
+	shader.uniforms.mapRepeat.value = new THREE.Vector2(
+		1 / NUMBER_OF_ROW,
+		1 / NUMBER_OF_COLUMN
+   );
+	shader.uniforms.mapOffset.value = new THREE.Vector2(0, 0);
 
-   const TrueViewMaterial = new THREE.MeshBasicMaterial({
-      map: tex,
-      transparent: true,
-      // depthWrite: false,
-   });
+   const TrueViewMaterial = new THREE.ShaderMaterial({
+		fragmentShader: shader.fragmentShader,
+		vertexShader: shader.vertexShader,
+		uniforms: shader.uniforms,
+		transparent: true,
+	});
 
    const targetObj = new THREE.Mesh(TrueViewGeometry, TrueViewMaterial);
    targetObj.position.y = 100;
@@ -201,7 +207,7 @@ function createTrueViewObj(objIndex) {
 
    scene.add(baseObj);
 
-   const obj = new TrueViewObj(IMG_NAMES[objIndex], targetObj, tex, 0, baseObj);
+   const obj = new TrueViewObj(IMG_NAMES[objIndex], targetObj, shader, 0, baseObj);
    TrueViewObjAry.push(obj);
 }
 
@@ -209,10 +215,10 @@ function rotateObj(objIndex) {
    const offsetX = TrueViewObjAry[objIndex].ImgIndex % NUMBER_OF_ROW;
    const offsetY = NUMBER_OF_COLUMN - 1 - Math.floor(TrueViewObjAry[objIndex].ImgIndex / NUMBER_OF_ROW);
 
-   TrueViewObjAry[objIndex].Texture.offset.x = offsetX / NUMBER_OF_ROW;
-   TrueViewObjAry[objIndex].Texture.offset.y = offsetY / NUMBER_OF_COLUMN;
-   TrueViewObjAry[objIndex].TargetObj.material.map = TrueViewObjAry[objIndex].Texture;
-   TrueViewObjAry[objIndex].TargetObj.material.needsUpdate = true;
+   TrueViewObjAry[objIndex].Shader.uniforms.mapOffset.value = new THREE.Vector2(
+      offsetX / NUMBER_OF_ROW,
+      offsetY / NUMBER_OF_COLUMN
+   );
 }
 
 function isAngleChange(objIndex) {
