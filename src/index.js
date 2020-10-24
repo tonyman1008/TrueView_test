@@ -8,14 +8,21 @@ var SCREEN_WIDTH = window.innerWidth;
 var SCREEN_HEIGHT = window.innerHeight;
 
 var container, stats;
-var camera, scene, renderer, orbitControler;
+var camera, scene, renderer, controls;
 
-const testCount = 20;
-const IMG_COUNT = 24; // need user input
+const testCount = 1;
+const IMG_COUNT = 30; // need user input
 const NUMBER_OF_ROW = 5; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
 
-const TrueViewObj = function (ImgName, TargetObj, Shader, ImgIndex = 0, BaseObj) {
+const TrueViewObj = function (
+   ImgName,
+   TargetObj,
+   Shader,
+   ImgIndex = 0,
+   BaseObj,
+   Deg = 90
+) {
    this.ImgName = ImgName;
    this.TargetObj = TargetObj;
    this.Shader = Shader;
@@ -23,8 +30,9 @@ const TrueViewObj = function (ImgName, TargetObj, Shader, ImgIndex = 0, BaseObj)
    this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["LV"]; // need user input
-const BASE_POS = [new THREE.Vector3(450, 150, 0)];
+const IMG_NAMES = ["dragon30-nolight"]; // need user input
+const IMG_NAMES_50deg = ["dragon75deg"]; // need user input
+const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
 var imgHeight = 0;
 var imgWidth = 0;
@@ -36,7 +44,10 @@ const groundImg = "asset/materials/ground.jpg";
 var guiParams = {
    distanceToObj: 0,
    PolarAngle: 0,
+   AzimuthalAngle: 0,
    position: 0,
+   enableRotate: true,
+   autoRotateSpeed: 2,
 };
 
 createScene();
@@ -54,7 +65,12 @@ function createScene() {
 
    // CAMERA
 
-   camera = new THREE.PerspectiveCamera(40, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000);
+   camera = new THREE.PerspectiveCamera(
+      40,
+      SCREEN_WIDTH / SCREEN_HEIGHT,
+      1,
+      10000
+   );
    camera.position.set(0, 250, 1200);
 
    // SCENE
@@ -69,12 +85,24 @@ function createScene() {
 
    // SKYBOX;
    let materialArray = [];
-   let texture_ft = new THREE.TextureLoader().load("./asset/skybox/space/ft.jpg");
-   let texture_bk = new THREE.TextureLoader().load("./asset/skybox/space/bk.jpg");
-   let texture_up = new THREE.TextureLoader().load("./asset/skybox/space/up.jpg");
-   let texture_dn = new THREE.TextureLoader().load("./asset/skybox/space/dn.jpg");
-   let texture_rt = new THREE.TextureLoader().load("./asset/skybox/space/rt.jpg");
-   let texture_lf = new THREE.TextureLoader().load("./asset/skybox/space/lf.jpg");
+   let texture_ft = new THREE.TextureLoader().load(
+      "./asset/skybox/space/ft.jpg"
+   );
+   let texture_bk = new THREE.TextureLoader().load(
+      "./asset/skybox/space/bk.jpg"
+   );
+   let texture_up = new THREE.TextureLoader().load(
+      "./asset/skybox/space/up.jpg"
+   );
+   let texture_dn = new THREE.TextureLoader().load(
+      "./asset/skybox/space/dn.jpg"
+   );
+   let texture_rt = new THREE.TextureLoader().load(
+      "./asset/skybox/space/rt.jpg"
+   );
+   let texture_lf = new THREE.TextureLoader().load(
+      "./asset/skybox/space/lf.jpg"
+   );
 
    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
@@ -98,14 +126,15 @@ function createScene() {
 
    // CONTROLS
 
-   var controls = new OrbitControls(camera, renderer.domElement);
+   controls = new OrbitControls(camera, renderer.domElement);
    controls.enableZoom = false;
    controls.target.set(0, 250, 0);
    //lock y asix
    controls.minPolarAngle = 0;
    controls.maxPolarAngle = Math.PI / 2;
+   controls.autoRotate = true;
+   controls.autoRotateSpeed = 2;
    controls.update();
-   orbitControler = controls;
 
    // STATS
 
@@ -157,39 +186,50 @@ function initGUI() {
 
    gui.add(guiParams, "distanceToObj").name("Distance").listen();
    gui.add(guiParams, "PolarAngle").name("Polar Angle(deg)").listen();
+   gui.add(guiParams, "AzimuthalAngle").name("Azimuthal Angle(deg)").listen();
+   gui.add(guiParams, "enableRotate").onChange(() => {
+      controls.autoRotate = guiParams.enableRotate;
+   });
+   gui.add(guiParams, "autoRotateSpeed", -20, 20).onChange(() => {
+      controls.autoRotateSpeed = guiParams.autoRotateSpeed;
+   });
    gui.add(camera.position, "y").name("Camera Pos Y").listen();
 }
 
 function createTrueViewObj(objIndex) {
-   const IMG_PATH = "asset/TrueViewObj/" + IMG_NAMES[0] + (objIndex + 1) + ".png";
+   const IMG_PATH = "asset/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
    const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
       imgWidth = tex.image.width;
       imgHeight = tex.image.height;
       console.log("imgWidth = ", imgWidth, " imgHeight = ", imgHeight);
-
-      tex.repeat.x = 1 / NUMBER_OF_ROW;
-      tex.repeat.y = 1 / NUMBER_OF_COLUMN;
    });
+   const IMG_50deg_PATH =
+      "asset/TrueViewObj/" + IMG_NAMES_50deg[objIndex] + ".png";
+   const tex50 = new THREE.TextureLoader().load(IMG_50deg_PATH, function (
+      tex
+   ) {});
 
    // targetObj
    const TrueViewGeometry = new THREE.PlaneGeometry(200, 150, 4, 4);
-	const shader = new BasicNoLight();
-	shader.uniforms.map.value = tex;
-	shader.uniforms.mapRepeat.value = new THREE.Vector2(
-		1 / NUMBER_OF_ROW,
-		1 / NUMBER_OF_COLUMN
+   const shader = new BasicNoLight();
+   shader.uniforms.map.value = tex;
+   shader.uniforms.map50.value = tex50;
+   shader.uniforms.mapRepeat.value = new THREE.Vector2(
+      1 / NUMBER_OF_ROW,
+      1 / NUMBER_OF_COLUMN
    );
-	shader.uniforms.mapOffset.value = new THREE.Vector2(0, 0);
+   shader.uniforms.deg.value = 90;
+   shader.uniforms.mapOffset.value = new THREE.Vector2(0, 0);
 
    const TrueViewMaterial = new THREE.ShaderMaterial({
-		fragmentShader: shader.fragmentShader,
-		vertexShader: shader.vertexShader,
-		uniforms: shader.uniforms,
-		transparent: true,
-	});
+      fragmentShader: shader.fragmentShader,
+      vertexShader: shader.vertexShader,
+      uniforms: shader.uniforms,
+      transparent: true,
+   });
 
    const targetObj = new THREE.Mesh(TrueViewGeometry, TrueViewMaterial);
-   targetObj.position.y = 100;
+   targetObj.position.y = 95;
    targetObj.renderOrder = 2;
 
    // base
@@ -199,37 +239,65 @@ function createTrueViewObj(objIndex) {
       transparent: true,
    });
    const baseObj = new THREE.Mesh(baseGeometry, baseMaterial);
-   baseObj.position.copy(BASE_POS[0]);
-   baseObj.translateX((objIndex % 10) * -100);
-   baseObj.translateZ(Math.floor(objIndex / 10) * 150);
+   baseObj.position.copy(BASE_POS[objIndex]);
+   // baseObj.translateX((objIndex % 10) * -100);
+   // baseObj.translateZ(Math.floor(objIndex / 10) * 150);
    baseObj.add(targetObj);
    baseObj.renderOrder = 1;
 
    scene.add(baseObj);
 
-   const obj = new TrueViewObj(IMG_NAMES[objIndex], targetObj, shader, 0, baseObj);
+   const obj = new TrueViewObj(
+      IMG_NAMES[objIndex],
+      targetObj,
+      shader,
+      0,
+      baseObj,
+      90
+   );
    TrueViewObjAry.push(obj);
 }
 
 function rotateObj(objIndex) {
    const offsetX = TrueViewObjAry[objIndex].ImgIndex % NUMBER_OF_ROW;
-   const offsetY = NUMBER_OF_COLUMN - 1 - Math.floor(TrueViewObjAry[objIndex].ImgIndex / NUMBER_OF_ROW);
+   const offsetY =
+      NUMBER_OF_COLUMN -
+      1 -
+      Math.floor(TrueViewObjAry[objIndex].ImgIndex / NUMBER_OF_ROW);
 
    TrueViewObjAry[objIndex].Shader.uniforms.mapOffset.value = new THREE.Vector2(
       offsetX / NUMBER_OF_ROW,
       offsetY / NUMBER_OF_COLUMN
    );
 }
+function rotatePolarObj(objIndex,deg) {
+
+   TrueViewObjAry[objIndex].Shader.uniforms.deg.value = deg;
+}
 
 function isAngleChange(objIndex) {
-   let angle = THREE.Math.radToDeg(TrueViewObjAry[objIndex].TargetObj.rotation.y) % 360;
-   if (angle < 0) angle += 359;
-   let tmpImgIndex = Math.floor(angle / Math.ceil(360 / IMG_COUNT));
+   let AzimuthalAngle = guiParams.AzimuthalAngle;
+   let tmpImgIndex = Math.floor(AzimuthalAngle / Math.ceil(360 / IMG_COUNT));
+   console.log(tmpImgIndex);
+
    if (tmpImgIndex == TrueViewObjAry[objIndex].ImgIndex) {
       return;
    } else {
       TrueViewObjAry[objIndex].ImgIndex = tmpImgIndex;
       rotateObj(objIndex);
+   }
+}
+
+function isPolarAngleChange(objIndex) {
+   let PolarAngle = guiParams.PolarAngle;
+   if (PolarAngle == TrueViewObjAry[objIndex].Deg) {
+      return;
+   } else {
+      if (PolarAngle <= 90 && PolarAngle > 75) {
+        rotatePolarObj(objIndex,90);
+    } else {
+        rotatePolarObj(objIndex,50);
+    }
    }
 }
 
@@ -248,17 +316,25 @@ function animate() {
    renderer.render(scene, camera);
    stats.update();
 
+   controls.update();
+
    //always face to camera
-   // mesh.lookAt(camera.position);
    for (let i = 0; i < testCount; i++) {
+      TrueViewObjAry[i].TargetObj.lookAt(camera.position);
+      // TrueViewObjAry[i].TargetObj.rotation.y = Math.atan2(
+      //    camera.position.x - TrueViewObjAry[i].TargetObj.position.x,
+      //    camera.position.z - TrueViewObjAry[i].TargetObj.position.z
+      //    );
       isAngleChange(i);
-      TrueViewObjAry[i].TargetObj.rotation.y = Math.atan2(
-         camera.position.x - TrueViewObjAry[i].TargetObj.position.x,
-         camera.position.z - TrueViewObjAry[i].TargetObj.position.z
-      );
+      isPolarAngleChange(i);
    }
 
    //camera control gui
-   guiParams.distanceToObj = camera.position.distanceTo(TrueViewObjAry[0].TargetObj.position);
-   guiParams.PolarAngle = THREE.Math.radToDeg(orbitControler.getPolarAngle());
+   guiParams.distanceToObj = camera.position.distanceTo(
+      TrueViewObjAry[0].TargetObj.position
+   );
+   guiParams.PolarAngle = THREE.Math.radToDeg(controls.getPolarAngle());
+   let azimuthaAngleDeg = THREE.Math.radToDeg(controls.getAzimuthalAngle());
+   if (azimuthaAngleDeg < 0) azimuthaAngleDeg += 360;
+   guiParams.AzimuthalAngle = azimuthaAngleDeg;
 }
