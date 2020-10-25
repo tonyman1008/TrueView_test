@@ -7,7 +7,10 @@ function BasicNoLight() {
    this.vertexShader = vertexShader;
    this.uniforms = {
       map: { value: null },
+      map35: { value: null },
       map50: { value: null },
+      map60: { value: null },
+      map70: { value: null },
       deg: { value: 90 },
       mapRepeat: { value: new THREE.Vector2(1, 1) },
       mapOffset: { value: new THREE.Vector2(0, 0) },

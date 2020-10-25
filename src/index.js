@@ -30,8 +30,11 @@ const TrueViewObj = function (
    this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["dragon30-nolight"]; // need user input
-const IMG_NAMES_50deg = ["dragon75deg"]; // need user input
+const IMG_NAMES = ["dragon90"]; // need user input
+const IMG_NAMES_70 = ["dragon70"]; // need user input
+const IMG_NAMES_60 = ["dragon60"]; // need user input
+const IMG_NAMES_50 = ["dragon50"]; // need user input
+const IMG_NAMES_35 = ["dragon35"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
 var imgHeight = 0;
@@ -71,7 +74,7 @@ function createScene() {
       1,
       10000
    );
-   camera.position.set(0, 250, 1200);
+   camera.position.set(0, 247, 1200);
 
    // SCENE
 
@@ -128,7 +131,7 @@ function createScene() {
 
    controls = new OrbitControls(camera, renderer.domElement);
    controls.enableZoom = false;
-   controls.target.set(0, 250, 0);
+   controls.target.set(0, 247, 0);
    //lock y asix
    controls.minPolarAngle = 0;
    controls.maxPolarAngle = Math.PI / 2;
@@ -190,7 +193,7 @@ function initGUI() {
    gui.add(guiParams, "enableRotate").onChange(() => {
       controls.autoRotate = guiParams.enableRotate;
    });
-   gui.add(guiParams, "autoRotateSpeed", -20, 20).onChange(() => {
+   gui.add(guiParams, "autoRotateSpeed", -30, 30).onChange(() => {
       controls.autoRotateSpeed = guiParams.autoRotateSpeed;
    });
    gui.add(camera.position, "y").name("Camera Pos Y").listen();
@@ -203,17 +206,28 @@ function createTrueViewObj(objIndex) {
       imgHeight = tex.image.height;
       console.log("imgWidth = ", imgWidth, " imgHeight = ", imgHeight);
    });
-   const IMG_50deg_PATH =
-      "asset/TrueViewObj/" + IMG_NAMES_50deg[objIndex] + ".png";
-   const tex50 = new THREE.TextureLoader().load(IMG_50deg_PATH, function (
-      tex
-   ) {});
+
+   const tex70 = new THREE.TextureLoader().load(
+      "asset/TrueViewObj/" + IMG_NAMES_70[objIndex] + ".png"
+   );
+   const tex60 = new THREE.TextureLoader().load(
+      "asset/TrueViewObj/" + IMG_NAMES_60[objIndex] + ".png"
+   );
+   const tex50 = new THREE.TextureLoader().load(
+      "asset/TrueViewObj/" + IMG_NAMES_50[objIndex] + ".png"
+   );
+   const tex35 = new THREE.TextureLoader().load(
+      "asset/TrueViewObj/" + IMG_NAMES_35[objIndex] + ".png"
+   );
 
    // targetObj
    const TrueViewGeometry = new THREE.PlaneGeometry(200, 150, 4, 4);
    const shader = new BasicNoLight();
    shader.uniforms.map.value = tex;
    shader.uniforms.map50.value = tex50;
+   shader.uniforms.map60.value = tex60;
+   shader.uniforms.map70.value = tex70;
+   shader.uniforms.map35.value = tex35;
    shader.uniforms.mapRepeat.value = new THREE.Vector2(
       1 / NUMBER_OF_ROW,
       1 / NUMBER_OF_COLUMN
@@ -229,7 +243,7 @@ function createTrueViewObj(objIndex) {
    });
 
    const targetObj = new THREE.Mesh(TrueViewGeometry, TrueViewMaterial);
-   targetObj.position.y = 95;
+   targetObj.position.y = 97;
    targetObj.renderOrder = 2;
 
    // base
@@ -270,15 +284,13 @@ function rotateObj(objIndex) {
       offsetY / NUMBER_OF_COLUMN
    );
 }
-function rotatePolarObj(objIndex,deg) {
-
+function rotatePolarObj(objIndex, deg) {
    TrueViewObjAry[objIndex].Shader.uniforms.deg.value = deg;
 }
 
 function isAngleChange(objIndex) {
    let AzimuthalAngle = guiParams.AzimuthalAngle;
    let tmpImgIndex = Math.floor(AzimuthalAngle / Math.ceil(360 / IMG_COUNT));
-   console.log(tmpImgIndex);
 
    if (tmpImgIndex == TrueViewObjAry[objIndex].ImgIndex) {
       return;
@@ -294,10 +306,14 @@ function isPolarAngleChange(objIndex) {
       return;
    } else {
       if (PolarAngle <= 90 && PolarAngle > 75) {
-        rotatePolarObj(objIndex,90);
-    } else {
-        rotatePolarObj(objIndex,50);
-    }
+         rotatePolarObj(objIndex, 90);
+      }else if (PolarAngle <= 75 && PolarAngle > 65) {
+         rotatePolarObj(objIndex, 70);
+      }else if (PolarAngle <= 65 && PolarAngle > 45) {
+         rotatePolarObj(objIndex, 50);
+      } else {
+         rotatePolarObj(objIndex, 35);
+      }
    }
 }
 
