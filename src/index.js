@@ -12,6 +12,7 @@ var camera, scene, renderer, controls;
 
 const testCount = 1;
 const IMG_COUNT = 30; // need user input
+const img_per_angle = 360 / IMG_COUNT;
 const NUMBER_OF_ROW = 5; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
 
@@ -20,16 +21,18 @@ const TrueViewObj = function (
    TargetObj,
    Shader,
    ImgIndex = 0,
+   ImgIndex2 = 0,
    BaseObj,
 ) {
    this.ImgName = ImgName;
    this.TargetObj = TargetObj;
    this.Shader = Shader;
    this.ImgIndex = ImgIndex;
+   this.ImgIndex2 = ImgIndex2;
    this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["dragon90"]; // need user input
+const IMG_NAMES = ["dragon"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
 var imgHeight = 0;
@@ -213,6 +216,8 @@ function createTrueViewObj(objIndex) {
       1 / NUMBER_OF_COLUMN
    );
    shader.uniforms.mapOffset.value = new THREE.Vector2(0, 0);
+   shader.uniforms.mapOffset2.value = new THREE.Vector2(0, 0);
+   shader.uniforms.interpVal.value = 0;
 
    const TrueViewMaterial = new THREE.ShaderMaterial({
       fragmentShader: shader.fragmentShader,
@@ -245,12 +250,13 @@ function createTrueViewObj(objIndex) {
       targetObj,
       shader,
       0,
+      1,
       baseObj,
    );
    TrueViewObjAry.push(obj);
 }
 
-function rotateObj(objIndex) {
+function rotateObj(objIndex,interPolVal) {
    const offsetX = TrueViewObjAry[objIndex].ImgIndex % NUMBER_OF_ROW;
    const offsetY =
       NUMBER_OF_COLUMN -
@@ -261,18 +267,40 @@ function rotateObj(objIndex) {
       offsetX / NUMBER_OF_ROW,
       offsetY / NUMBER_OF_COLUMN
    );
+
+
+   // next image
+   const offsetX2 = TrueViewObjAry[objIndex].ImgIndex2 % NUMBER_OF_ROW;
+   const offsetY2 =
+      NUMBER_OF_COLUMN -
+      1 -
+      Math.floor(TrueViewObjAry[objIndex].ImgIndex2 / NUMBER_OF_ROW);
+
+   TrueViewObjAry[objIndex].Shader.uniforms.mapOffset2.value = new THREE.Vector2(
+      offsetX2 / NUMBER_OF_ROW,
+      offsetY2 / NUMBER_OF_COLUMN
+   );
+   console.log("offset1", offsetX, offsetY);
+   console.log("offset2", offsetX2, offsetY2);
+   TrueViewObjAry[objIndex].Shader.uniforms.interpVal.value = interPolVal/img_per_angle;
+   console.log(interPolVal/img_per_angle);
 }
 
 function isAngleChange(objIndex) {
    let AzimuthalAngle = guiParams.AzimuthalAngle;
-   let tmpImgIndex = Math.floor(AzimuthalAngle / Math.ceil(360 / IMG_COUNT));
+   let tmpImgIndex = Math.floor(AzimuthalAngle%360 / Math.ceil(360 / IMG_COUNT));
+   let tmpImgIndex2 = Math.floor((AzimuthalAngle+img_per_angle)%360 / Math.ceil(360 / IMG_COUNT));
+   // console.log("tempIndex",tmpImgIndex);
+   // console.log("tempIndex2",tmpImgIndex2);
+   let interPolVal = AzimuthalAngle %img_per_angle ;
 
-   if (tmpImgIndex == TrueViewObjAry[objIndex].ImgIndex) {
-      return;
-   } else {
+   // if (tmpImgIndex == TrueViewObjAry[objIndex].ImgIndex) {
+   //    return;
+   // } else {
       TrueViewObjAry[objIndex].ImgIndex = tmpImgIndex;
-      rotateObj(objIndex);
-   }
+      TrueViewObjAry[objIndex].ImgIndex2 = tmpImgIndex2;
+      rotateObj(objIndex,interPolVal);
+   // }
 }
 
 function onWindowResize() {

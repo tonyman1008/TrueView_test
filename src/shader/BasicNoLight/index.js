@@ -9,6 +9,8 @@ function BasicNoLight() {
       map: { value: null },
       mapRepeat: { value: new THREE.Vector2(1, 1) },
       mapOffset: { value: new THREE.Vector2(0, 0) },
+      mapOffset2: { value: new THREE.Vector2(0, 0) },
+      interpVal: { value: 0.0 },
    };
 }
 
