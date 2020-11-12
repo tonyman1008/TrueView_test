@@ -21,7 +21,6 @@ const TrueViewObj = function (
    Shader,
    ImgIndex = 0,
    BaseObj,
-   Deg = 90
 ) {
    this.ImgName = ImgName;
    this.TargetObj = TargetObj;
@@ -31,10 +30,6 @@ const TrueViewObj = function (
 };
 const TrueViewObjAry = [];
 const IMG_NAMES = ["dragon90"]; // need user input
-const IMG_NAMES_70 = ["dragon70"]; // need user input
-const IMG_NAMES_60 = ["dragon60"]; // need user input
-const IMG_NAMES_50 = ["dragon50"]; // need user input
-const IMG_NAMES_35 = ["dragon35"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
 var imgHeight = 0;
@@ -133,9 +128,9 @@ function createScene() {
    controls.enableZoom = false;
    controls.target.set(0, 247, 0);
    //lock y asix
-   controls.minPolarAngle = 0;
+   controls.minPolarAngle = Math.PI / 2;
    controls.maxPolarAngle = Math.PI / 2;
-   controls.autoRotate = true;
+   controls.autoRotate = false;
    controls.autoRotateSpeed = 2;
    controls.update();
 
@@ -207,32 +202,16 @@ function createTrueViewObj(objIndex) {
       console.log("imgWidth = ", imgWidth, " imgHeight = ", imgHeight);
    });
 
-   const tex70 = new THREE.TextureLoader().load(
-      "asset/TrueViewObj/" + IMG_NAMES_70[objIndex] + ".png"
-   );
-   const tex60 = new THREE.TextureLoader().load(
-      "asset/TrueViewObj/" + IMG_NAMES_60[objIndex] + ".png"
-   );
-   const tex50 = new THREE.TextureLoader().load(
-      "asset/TrueViewObj/" + IMG_NAMES_50[objIndex] + ".png"
-   );
-   const tex35 = new THREE.TextureLoader().load(
-      "asset/TrueViewObj/" + IMG_NAMES_35[objIndex] + ".png"
-   );
 
    // targetObj
    const TrueViewGeometry = new THREE.PlaneGeometry(200, 150, 4, 4);
    const shader = new BasicNoLight();
    shader.uniforms.map.value = tex;
-   shader.uniforms.map50.value = tex50;
-   shader.uniforms.map60.value = tex60;
-   shader.uniforms.map70.value = tex70;
-   shader.uniforms.map35.value = tex35;
+
    shader.uniforms.mapRepeat.value = new THREE.Vector2(
       1 / NUMBER_OF_ROW,
       1 / NUMBER_OF_COLUMN
    );
-   shader.uniforms.deg.value = 90;
    shader.uniforms.mapOffset.value = new THREE.Vector2(0, 0);
 
    const TrueViewMaterial = new THREE.ShaderMaterial({
@@ -267,7 +246,6 @@ function createTrueViewObj(objIndex) {
       shader,
       0,
       baseObj,
-      90
    );
    TrueViewObjAry.push(obj);
 }
@@ -284,9 +262,6 @@ function rotateObj(objIndex) {
       offsetY / NUMBER_OF_COLUMN
    );
 }
-function rotatePolarObj(objIndex, deg) {
-   TrueViewObjAry[objIndex].Shader.uniforms.deg.value = deg;
-}
 
 function isAngleChange(objIndex) {
    let AzimuthalAngle = guiParams.AzimuthalAngle;
@@ -297,23 +272,6 @@ function isAngleChange(objIndex) {
    } else {
       TrueViewObjAry[objIndex].ImgIndex = tmpImgIndex;
       rotateObj(objIndex);
-   }
-}
-
-function isPolarAngleChange(objIndex) {
-   let PolarAngle = guiParams.PolarAngle;
-   if (PolarAngle == TrueViewObjAry[objIndex].Deg) {
-      return;
-   } else {
-      if (PolarAngle <= 90 && PolarAngle > 75) {
-         rotatePolarObj(objIndex, 90);
-      }else if (PolarAngle <= 75 && PolarAngle > 65) {
-         rotatePolarObj(objIndex, 70);
-      }else if (PolarAngle <= 65 && PolarAngle > 45) {
-         rotatePolarObj(objIndex, 50);
-      } else {
-         rotatePolarObj(objIndex, 35);
-      }
    }
 }
 
@@ -336,13 +294,12 @@ function animate() {
 
    //always face to camera
    for (let i = 0; i < testCount; i++) {
-      TrueViewObjAry[i].TargetObj.lookAt(camera.position);
-      // TrueViewObjAry[i].TargetObj.rotation.y = Math.atan2(
-      //    camera.position.x - TrueViewObjAry[i].TargetObj.position.x,
-      //    camera.position.z - TrueViewObjAry[i].TargetObj.position.z
-      //    );
+      // TrueViewObjAry[i].TargetObj.lookAt(camera.position);
+      TrueViewObjAry[i].TargetObj.rotation.y = Math.atan2(
+         camera.position.x - TrueViewObjAry[i].TargetObj.position.x,
+         camera.position.z - TrueViewObjAry[i].TargetObj.position.z
+         );
       isAngleChange(i);
-      isPolarAngleChange(i);
    }
 
    //camera control gui
