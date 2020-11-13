@@ -9,6 +9,6 @@ uniform float interpVal;
 void main() {
      vec4 color1 = texture2D(map, modeluv*mapRepeat+mapOffset);
      vec4 color2 = texture2D(map, modeluv*mapRepeat+mapOffset2);
-     gl_FragColor =  color1*(1.0-interpVal) + color2*interpVal;
+     gl_FragColor =  mix(color1,color2,interpVal);
 }
 `;

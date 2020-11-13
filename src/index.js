@@ -12,7 +12,7 @@ var camera, scene, renderer, controls;
 
 const testCount = 1;
 const IMG_COUNT = 30; // need user input
-const img_per_angle = 360 / IMG_COUNT;
+const ANGLE_PER_IMAGE = Math.ceil(360 / IMG_COUNT);
 const NUMBER_OF_ROW = 5; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
 
@@ -282,17 +282,16 @@ function rotateObj(objIndex,interPolVal) {
    );
    console.log("offset1", offsetX, offsetY);
    console.log("offset2", offsetX2, offsetY2);
-   TrueViewObjAry[objIndex].Shader.uniforms.interpVal.value = interPolVal/img_per_angle;
-   console.log(interPolVal/img_per_angle);
+   TrueViewObjAry[objIndex].Shader.uniforms.interpVal.value = interPolVal/ANGLE_PER_IMAGE;
+   console.log(interPolVal/ANGLE_PER_IMAGE);
 }
 
 function isAngleChange(objIndex) {
    let AzimuthalAngle = guiParams.AzimuthalAngle;
-   let tmpImgIndex = Math.floor(AzimuthalAngle%360 / Math.ceil(360 / IMG_COUNT));
-   let tmpImgIndex2 = Math.floor((AzimuthalAngle+img_per_angle)%360 / Math.ceil(360 / IMG_COUNT));
-   // console.log("tempIndex",tmpImgIndex);
-   // console.log("tempIndex2",tmpImgIndex2);
-   let interPolVal = AzimuthalAngle %img_per_angle ;
+   let tmpImgIndex = Math.floor(AzimuthalAngle%360 / ANGLE_PER_IMAGE);
+   let tmpImgIndex2 = tmpImgIndex+1;
+   if(tmpImgIndex2 >= IMG_COUNT) tmpImgIndex2 =0;
+   let interPolVal = AzimuthalAngle % ANGLE_PER_IMAGE ;
 
    // if (tmpImgIndex == TrueViewObjAry[objIndex].ImgIndex) {
    //    return;
