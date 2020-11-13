@@ -47,8 +47,6 @@ var guiParams = {
    PolarAngle: 0,
    AzimuthalAngle: 0,
    position: 0,
-   enableRotate: true,
-   autoRotateSpeed: 2,
 };
 
 createScene();
@@ -188,12 +186,8 @@ function initGUI() {
    gui.add(guiParams, "distanceToObj").name("Distance").listen();
    gui.add(guiParams, "PolarAngle").name("Polar Angle(deg)").listen();
    gui.add(guiParams, "AzimuthalAngle").name("Azimuthal Angle(deg)").listen();
-   gui.add(guiParams, "enableRotate").onChange(() => {
-      controls.autoRotate = guiParams.enableRotate;
-   });
-   gui.add(guiParams, "autoRotateSpeed", -30, 30).onChange(() => {
-      controls.autoRotateSpeed = guiParams.autoRotateSpeed;
-   });
+   gui.add(controls, "autoRotate").name("enableAutoRotate").listen();
+   gui.add(controls, "autoRotateSpeed",-30, 30).name("enableAutoRotate").listen();
    gui.add(camera.position, "y").name("Camera Pos Y").listen();
 }
 
