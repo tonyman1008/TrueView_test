@@ -10,7 +10,7 @@ var SCREEN_HEIGHT = window.innerHeight;
 var container, stats;
 var camera, scene, renderer, controls;
 
-const testCount = 4;
+const testCount = 3;
 const IMG_COUNT = 30; // need user input
 const NUMBER_OF_ROW = 5; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
@@ -29,8 +29,8 @@ const TrueViewObj = function (
    this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["butterfly30","dragon90","butterfly30","dragon90"]; // need user input
-const BASE_POS = [new THREE.Vector3(100, 150, 0),new THREE.Vector3(-300, 150, 150),new THREE.Vector3(300, 150, 250),new THREE.Vector3(-200, 150, -150)];
+const IMG_NAMES = ["butterfly30","butterfly30","butterfly30"]; // need user input
+const BASE_POS = [new THREE.Vector3(200, 150, 0),new THREE.Vector3(0, 150, 150),new THREE.Vector3(-200, 150, -150)];
 
 var imgHeight = 0;
 var imgWidth = 0;
