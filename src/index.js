@@ -69,7 +69,7 @@ function createScene() {
       1,
       10000
    );
-   camera.position.set(0, 247, 1200);
+   camera.position.set(0, 350, 1200);
 
    // SCENE
 
@@ -126,10 +126,10 @@ function createScene() {
 
    controls = new OrbitControls(camera, renderer.domElement);
    controls.enableZoom = false;
-   controls.target.set(0, 247, 0);
+   controls.target.set(0, 260, 0);
    //lock y asix
-   controls.minPolarAngle = Math.PI / 2;
-   controls.maxPolarAngle = Math.PI / 2;
+   // controls.minPolarAngle = Math.PI / 2;
+   // controls.maxPolarAngle = Math.PI / 2;
    controls.autoRotate = false;
    controls.autoRotateSpeed = 2;
    controls.update();
@@ -192,6 +192,11 @@ function initGUI() {
       controls.autoRotateSpeed = guiParams.autoRotateSpeed;
    });
    gui.add(camera.position, "y").name("Camera Pos Y").listen();
+
+   const hintText ={
+      text: "W,A,S,D can move !",
+   }
+   gui.add(hintText,"text").name("Hint");
 }
 
 function createTrueViewObj(objIndex) {
@@ -222,7 +227,7 @@ function createTrueViewObj(objIndex) {
    });
 
    const targetObj = new THREE.Mesh(TrueViewGeometry, TrueViewMaterial);
-   targetObj.position.y = 97;
+   targetObj.position.y = 118;
    targetObj.renderOrder = 2;
 
    // base
@@ -233,8 +238,6 @@ function createTrueViewObj(objIndex) {
    });
    const baseObj = new THREE.Mesh(baseGeometry, baseMaterial);
    baseObj.position.copy(BASE_POS[objIndex]);
-   // baseObj.translateX((objIndex % 10) * -100);
-   // baseObj.translateZ(Math.floor(objIndex / 10) * 150);
    baseObj.add(targetObj);
    baseObj.renderOrder = 1;
 
