@@ -49,18 +49,16 @@ var guiParams = {
 };
 
 const raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 0.25;
+// raycaster.params.Points.threshold = 0.1;
 var mouse = new THREE.Vector2();
 var intersects = null;
-var dragging = false;
+var isDragging = false;
 var planeNormal = new THREE.Vector3();
 var currentIndex = null;
 var planePoint = new THREE.Vector3();
 var points =null;
 var testObj = null;
-window.addEventListener("mousedown", mouseDown, false);
-window.addEventListener("mousemove", mouseMove, false);
-window.addEventListener("mouseup", mouseUp, false);
+
 
 createScene();
 animate();
@@ -136,6 +134,8 @@ function createScene() {
     renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     container.appendChild(renderer.domElement);
 
+
+
     // CONTROLS
 
     controls = new OrbitControls(camera, renderer.domElement);
@@ -146,7 +146,6 @@ function createScene() {
     // controls.maxPolarAngle = Math.PI / 2;
     controls.autoRotate = false;
     controls.autoRotateSpeed = 2;
-    controls.update();
 
     // STATS
 
@@ -168,6 +167,10 @@ function createScene() {
 
     window.addEventListener("resize", onWindowResize, false);
     document.addEventListener("keydown", onDocumentKeyDown, false);
+
+    document.addEventListener("pointerdown", onPointerDown, false);
+    document.addEventListener("pointermove", onPointerMove, false);
+    document.addEventListener("pointerup", onPointerUp, false);
 
     initGUI();
 
@@ -209,16 +212,15 @@ function initGUI() {
     gui.add(camera.position, "y").name("Camera Pos Y").listen();
 }
 
-function mouseDown(event) {
+function onPointerDown(event) {
     setRaycaster(event);
     getIndex();
-    dragging = true;
+    isDragging = true;
 }
 
-function mouseMove(event) {
-    if (dragging && currentIndex !== null) {
+function onPointerMove(event) {
+    if (isDragging && currentIndex !== null) {
         setRaycaster(event);
-        raycaster.ray.intersectPlane(plane, planePoint);
         geometry.attributes.position.setXYZ(
             currentIndex,
             planePoint.x,
@@ -229,25 +231,26 @@ function mouseMove(event) {
     }
 }
 
-function mouseUp(event) {
-    dragging = false;
+function onPointerUp(event) {
+    isDragging = false;
     currentIndex = null;
 }
 
 function getIndex() {
     intersects = raycaster.intersectObject(points);
+    console.log(intersects)
     if (intersects.length === 0) {
         currentIndex = null;
         return;
     }
     currentIndex = intersects[0].instanceld;
-    setPlane(intersects[0].point);
+    // setPlane(intersects[0].point);
 }
 
-function setPlane(point) {
-    planeNormal.subVectors(camera.position, point).normalize();
-    testObj.setFromNormalAndCoplanarPoint(planeNormal, point);
-}
+// function setPlane(point) {
+//     planeNormal.subVectors(camera.position, point).normalize();
+//     testObj.setFromNormalAndCoplanarPoint(planeNormal, point);
+// }
 
 function setRaycaster(event) {
     getMouse(event);
@@ -257,7 +260,6 @@ function setRaycaster(event) {
 function getMouse(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    console.log("mouse")
 }
 
 // test warping
@@ -290,7 +292,7 @@ function createWarpObj() {
     points = new THREE.Points(
         testObj.geometry,
         new THREE.PointsMaterial({
-            size: 5,
+            size: 20,
             color: "yellow",
         })
     );
