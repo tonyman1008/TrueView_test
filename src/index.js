@@ -49,19 +49,20 @@ var guiParams = {
 };
 
 const raycaster = new THREE.Raycaster();
-// raycaster.params.Points.threshold = 0.1;
+// raycaster.params.Points.threshold = 0.25;
 var mouse = new THREE.Vector2();
 var intersects = null;
 var isDragging = false;
-var planeNormal = new THREE.Vector3();
 var currentIndex = null;
 var planePoint = new THREE.Vector3();
-var points =null;
+var planeNormal = new THREE.Vector3();
 var testObj = null;
-
+var points = null;
 
 createScene();
 animate();
+
+var plane = new THREE.Plane();
 
 function getUrlImageCount() {
     var getUrlStr = location.href;
@@ -133,8 +134,6 @@ function createScene() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     container.appendChild(renderer.domElement);
-
-
 
     // CONTROLS
 
@@ -220,37 +219,42 @@ function onPointerDown(event) {
 
 function onPointerMove(event) {
     if (isDragging && currentIndex !== null) {
+       console.log("move")
         setRaycaster(event);
-        geometry.attributes.position.setXYZ(
+        raycaster.ray.intersectPlane(plane, planePoint);
+        console.log(planePoint);
+        testObj.geometry.attributes.position.setXY(
             currentIndex,
             planePoint.x,
             planePoint.y,
-            planePoint.z
         );
-        geometry.attributes.position.needsUpdate = true;
+        testObj.geometry.attributes.position.needsUpdate = true;
     }
 }
 
 function onPointerUp(event) {
     isDragging = false;
     currentIndex = null;
+    controls.enabled = true;
 }
 
 function getIndex() {
     intersects = raycaster.intersectObject(points);
-    console.log(intersects)
-    if (intersects.length === 0) {
+    console.log(intersects);
+    if (intersects.length > 0) {
+        controls.enabled = false;
+    } else {
         currentIndex = null;
         return;
     }
-    currentIndex = intersects[0].instanceld;
-    // setPlane(intersects[0].point);
+    currentIndex = intersects[0].index;
+    setPlane(intersects[0].point);
 }
 
-// function setPlane(point) {
-//     planeNormal.subVectors(camera.position, point).normalize();
-//     testObj.setFromNormalAndCoplanarPoint(planeNormal, point);
-// }
+function setPlane(point) {
+    planeNormal.subVectors(camera.position, point).normalize();
+    plane.setFromNormalAndCoplanarPoint(planeNormal, point);
+}
 
 function setRaycaster(event) {
     getMouse(event);
@@ -264,15 +268,13 @@ function getMouse(event) {
 
 // test warping
 function createWarpObj() {
-
     const testImgPath = "asset/TrueViewObj/dragon_noLight02.png";
-    const testGeo = new THREE.PlaneGeometry(200, 150, 15, 15);
+    const testGeo = new THREE.PlaneBufferGeometry(200, 150, 10, 10);
     const testTex = new THREE.TextureLoader().load(testImgPath);
     const testMat = new THREE.MeshBasicMaterial({
         map: testTex,
         transparent: true,
         //   wireframe: true,
-        vertexColors: true,
     });
     testObj = new THREE.Mesh(testGeo, testMat);
     testObj.position.y = 200;
@@ -292,7 +294,7 @@ function createWarpObj() {
     points = new THREE.Points(
         testObj.geometry,
         new THREE.PointsMaterial({
-            size: 20,
+            size: 3,
             color: "yellow",
         })
     );
