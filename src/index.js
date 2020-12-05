@@ -35,9 +35,9 @@ const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 var imgHeight = 0;
 var imgWidth = 0;
 
-const baseImg = "asset/materials/base.jpg";
+const baseImg = "assets/materials/base.jpg";
 const baseMap = new THREE.TextureLoader().load(baseImg);
-const groundImg = "asset/materials/ground.jpg";
+const groundImg = "assets/materials/ground.jpg";
 
 var guiParams = {
     distanceToObj: 0,
@@ -94,26 +94,26 @@ function createScene() {
     light.position.set(-10, 20, 20);
     scene.add(light);
 
-    // SKYBOX;
-    let materialArray = [];
-    let texture_ft = new THREE.TextureLoader().load(
-        "./asset/skybox/space/ft.jpg"
-    );
-    let texture_bk = new THREE.TextureLoader().load(
-        "./asset/skybox/space/bk.jpg"
-    );
-    let texture_up = new THREE.TextureLoader().load(
-        "./asset/skybox/space/up.jpg"
-    );
-    let texture_dn = new THREE.TextureLoader().load(
-        "./asset/skybox/space/dn.jpg"
-    );
-    let texture_rt = new THREE.TextureLoader().load(
-        "./asset/skybox/space/rt.jpg"
-    );
-    let texture_lf = new THREE.TextureLoader().load(
-        "./asset/skybox/space/lf.jpg"
-    );
+   // SKYBOX;
+   let materialArray = [];
+   let texture_ft = new THREE.TextureLoader().load(
+      "./assets/skybox/space/ft.jpg"
+   );
+   let texture_bk = new THREE.TextureLoader().load(
+      "./assets/skybox/space/bk.jpg"
+   );
+   let texture_up = new THREE.TextureLoader().load(
+      "./assets/skybox/space/up.jpg"
+   );
+   let texture_dn = new THREE.TextureLoader().load(
+      "./assets/skybox/space/dn.jpg"
+   );
+   let texture_rt = new THREE.TextureLoader().load(
+      "./assets/skybox/space/rt.jpg"
+   );
+   let texture_lf = new THREE.TextureLoader().load(
+      "./assets/skybox/space/lf.jpg"
+   );
 
     materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
     materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
@@ -268,7 +268,7 @@ function getMouse(event) {
 
 // test warping
 function createWarpObj() {
-    const testImgPath = "asset/TrueViewObj/dragon_noLight02.png";
+    const testImgPath = "assets/TrueViewObj/dragon_noLight02.png";
     const testGeo = new THREE.PlaneBufferGeometry(200, 150, 10, 10);
     const testTex = new THREE.TextureLoader().load(testImgPath);
     const testMat = new THREE.MeshBasicMaterial({
@@ -302,12 +302,12 @@ function createWarpObj() {
 }
 
 function createTrueViewObj(objIndex) {
-    const IMG_PATH = "asset/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
-    const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
-        imgWidth = tex.image.width;
-        imgHeight = tex.image.height;
-        console.log("imgWidth = ", imgWidth, " imgHeight = ", imgHeight);
-    });
+   const IMG_PATH = "assets/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
+   const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
+      imgWidth = tex.image.width;
+      imgHeight = tex.image.height;
+      console.log("imgWidth = ", imgWidth, " imgHeight = ", imgHeight);
+   });
 
     // targetObj
     const TrueViewGeometry = new THREE.PlaneBufferGeometry(200, 150, 4, 4);
