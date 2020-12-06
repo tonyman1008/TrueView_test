@@ -11,8 +11,8 @@ var container, stats;
 var camera, scene, renderer, controls;
 
 const testCount = 1;
-const IMG_COUNT = 30; // need user input
-const NUMBER_OF_ROW = 5; // constraint
+const IMG_COUNT = 90; // need user input
+const NUMBER_OF_ROW = 10; // constraint
 const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
 
 const TrueViewObj = function (
@@ -20,16 +20,16 @@ const TrueViewObj = function (
    TargetObj,
    Shader,
    ImgIndex = 0,
-   BaseObj,
+   // BaseObj,
 ) {
    this.ImgName = ImgName;
    this.TargetObj = TargetObj;
    this.Shader = Shader;
    this.ImgIndex = ImgIndex;
-   this.BaseObj = BaseObj;
+   // this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["dragon90"]; // need user input
+const IMG_NAMES = ["nissan90"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
 var imgHeight = 0;
@@ -82,39 +82,49 @@ function createScene() {
    scene.add(light);
 
    // SKYBOX;
-   let materialArray = [];
-   let texture_ft = new THREE.TextureLoader().load(
-      "./assets/skybox/space/ft.jpg"
-   );
-   let texture_bk = new THREE.TextureLoader().load(
-      "./assets/skybox/space/bk.jpg"
-   );
-   let texture_up = new THREE.TextureLoader().load(
-      "./assets/skybox/space/up.jpg"
-   );
-   let texture_dn = new THREE.TextureLoader().load(
-      "./assets/skybox/space/dn.jpg"
-   );
-   let texture_rt = new THREE.TextureLoader().load(
-      "./assets/skybox/space/rt.jpg"
-   );
-   let texture_lf = new THREE.TextureLoader().load(
-      "./assets/skybox/space/lf.jpg"
-   );
+   // let materialArray = [];
+   // let texture_ft = new THREE.TextureLoader().load(
+   //    "./assets/skybox/urban_street_01/pz.png"
+   // );
+   // let texture_bk = new THREE.TextureLoader().load(
+   //    "./assets/skybox/urban_street_01/nz.png"
+   // );
+   // let texture_up = new THREE.TextureLoader().load(
+   //    "./assets/skybox/urban_street_01/py.png"
+   // );
+   // let texture_dn = new THREE.TextureLoader().load(
+   //    "./assets/skybox/urban_street_01/ny.png"
+   // );
+   // let texture_rt = new THREE.TextureLoader().load(
+   //    "./assets/skybox/urban_street_01/nx.png"
+   // );
+   // let texture_lf = new THREE.TextureLoader().load(
+   //    "./assets/skybox/urban_street_01/px.png"
+   // );
 
-   materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
-   materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
-   materialArray.push(new THREE.MeshBasicMaterial({ map: texture_up }));
-   materialArray.push(new THREE.MeshBasicMaterial({ map: texture_dn }));
-   materialArray.push(new THREE.MeshBasicMaterial({ map: texture_rt }));
-   materialArray.push(new THREE.MeshBasicMaterial({ map: texture_lf }));
+   // materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
+   // materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
+   // materialArray.push(new THREE.MeshBasicMaterial({ map: texture_up }));
+   // materialArray.push(new THREE.MeshBasicMaterial({ map: texture_dn }));
+   // materialArray.push(new THREE.MeshBasicMaterial({ map: texture_rt }));
+   // materialArray.push(new THREE.MeshBasicMaterial({ map: texture_lf }));
 
-   for (let i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
+   // for (let i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
 
-   let skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
-   let skybox = new THREE.Mesh(skyboxGeo, materialArray);
-   scene.add(skybox);
-
+   // let skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
+   // let skybox = new THREE.Mesh(skyboxGeo, materialArray);
+   // scene.add(skybox);
+   scene.background = new THREE.CubeTextureLoader()
+      .setPath( './assets/skybox/urban_street_01/' )
+      .load( [
+         'px.png',
+         'nx.png',
+         'py.png',
+         'ny.png',
+         'pz.png',
+         'nz.png'
+      ] );
+   
    // RENDERER
 
    renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -125,11 +135,11 @@ function createScene() {
    // CONTROLS
 
    controls = new OrbitControls(camera, renderer.domElement);
-   controls.enableZoom = false;
-   controls.target.set(0, 247, 0);
-   //lock y asix
-   controls.minPolarAngle = Math.PI / 2;
-   controls.maxPolarAngle = Math.PI / 2;
+   controls.enableZoom = true;
+   controls.target.set(0, 0, 0);
+   // //lock y asix
+   // controls.minPolarAngle = Math.PI / 2;
+   // controls.maxPolarAngle = Math.PI / 2;
    controls.autoRotate = false;
    controls.autoRotateSpeed = 2;
    controls.update();
@@ -148,8 +158,8 @@ function createScene() {
    });
    const ground = new THREE.Mesh(groundGeo, groundMat);
    ground.rotation.x = -Math.PI / 2;
-   ground.position.y = 100;
-   ground.renderOrder = 0;
+   ground.position.y = 0;
+   // ground.renderOrder = 0;
    scene.add(ground);
 
    window.addEventListener("resize", onWindowResize, false);
@@ -204,7 +214,7 @@ function createTrueViewObj(objIndex) {
 
 
    // targetObj
-   const TrueViewGeometry = new THREE.PlaneGeometry(200, 150, 4, 4);
+   const TrueViewGeometry = new THREE.PlaneGeometry(160*10, 90*10, 1, 1);
    const shader = new BasicNoLight();
    shader.uniforms.map.value = tex;
 
@@ -222,30 +232,31 @@ function createTrueViewObj(objIndex) {
    });
 
    const targetObj = new THREE.Mesh(TrueViewGeometry, TrueViewMaterial);
-   targetObj.position.y = 97;
-   targetObj.renderOrder = 2;
+   targetObj.position.y = 0;
+   // targetObj.renderOrder = 2;
+   scene.add(targetObj)
 
-   // base
-   const baseGeometry = new THREE.CubeGeometry(70, 100, 70);
-   const baseMaterial = new THREE.MeshBasicMaterial({
-      map: baseMap,
-      transparent: true,
-   });
-   const baseObj = new THREE.Mesh(baseGeometry, baseMaterial);
-   baseObj.position.copy(BASE_POS[objIndex]);
-   // baseObj.translateX((objIndex % 10) * -100);
-   // baseObj.translateZ(Math.floor(objIndex / 10) * 150);
-   baseObj.add(targetObj);
-   baseObj.renderOrder = 1;
+   // // base
+   // const baseGeometry = new THREE.CubeGeometry(70, 100, 70);
+   // const baseMaterial = new THREE.MeshBasicMaterial({
+   //    map: baseMap,
+   //    transparent: true,
+   // });
+   // const baseObj = new THREE.Mesh(baseGeometry, baseMaterial);
+   // baseObj.position.copy(BASE_POS[objIndex]);
+   // // baseObj.translateX((objIndex % 10) * -100);
+   // // baseObj.translateZ(Math.floor(objIndex / 10) * 150);
+   // baseObj.add(targetObj);
+   // baseObj.renderOrder = 1;
 
-   scene.add(baseObj);
+   // scene.add(baseObj);
 
    const obj = new TrueViewObj(
       IMG_NAMES[objIndex],
       targetObj,
       shader,
       0,
-      baseObj,
+      // baseObj,
    );
    TrueViewObjAry.push(obj);
 }
