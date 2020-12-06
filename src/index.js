@@ -30,7 +30,7 @@ const TrueViewObj = function (
 };
 const TrueViewObjAry = [];
 const IMG_NAMES = ["dragon90"]; // need user input
-const BASE_POS = [new THREE.Vector3(0, 150, 0)];
+const BASE_POS = [new THREE.Vector3(0, -150, 0)];
 
 var imgHeight = 0;
 var imgWidth = 0;
@@ -69,7 +69,7 @@ function createScene() {
       1,
       10000
    );
-   camera.position.set(0, 247, 1200);
+   camera.position.set(0, 0, 1200);
 
    // SCENE
 
@@ -104,7 +104,7 @@ function createScene() {
 
    controls = new OrbitControls(camera, renderer.domElement);
    controls.enableZoom = false;
-   controls.target.set(0, 247, 0);
+   controls.target.set(0, 0, 0);
    //lock y asix
    controls.minPolarAngle = Math.PI / 2;
    controls.maxPolarAngle = Math.PI / 2;
@@ -126,7 +126,7 @@ function createScene() {
    });
    const ground = new THREE.Mesh(groundGeo, groundMat);
    ground.rotation.x = -Math.PI / 2;
-   ground.position.y = 100;
+   ground.position.y = -200;
    ground.renderOrder = 0;
    scene.add(ground);
 
