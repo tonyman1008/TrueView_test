@@ -82,7 +82,7 @@ function createScene() {
         1,
         10000
     );
-    camera.position.set(0, 247, 500);
+    camera.position.set(0, 0, 500);
 
     // SCENE
 
@@ -94,26 +94,26 @@ function createScene() {
     light.position.set(-10, 20, 20);
     scene.add(light);
 
-   // SKYBOX;
-   let materialArray = [];
-   let texture_ft = new THREE.TextureLoader().load(
-      "./assets/skybox/space/ft.jpg"
-   );
-   let texture_bk = new THREE.TextureLoader().load(
-      "./assets/skybox/space/bk.jpg"
-   );
-   let texture_up = new THREE.TextureLoader().load(
-      "./assets/skybox/space/up.jpg"
-   );
-   let texture_dn = new THREE.TextureLoader().load(
-      "./assets/skybox/space/dn.jpg"
-   );
-   let texture_rt = new THREE.TextureLoader().load(
-      "./assets/skybox/space/rt.jpg"
-   );
-   let texture_lf = new THREE.TextureLoader().load(
-      "./assets/skybox/space/lf.jpg"
-   );
+    // SKYBOX;
+    let materialArray = [];
+    let texture_ft = new THREE.TextureLoader().load(
+        "./assets/skybox/space/ft.jpg"
+    );
+    let texture_bk = new THREE.TextureLoader().load(
+        "./assets/skybox/space/bk.jpg"
+    );
+    let texture_up = new THREE.TextureLoader().load(
+        "./assets/skybox/space/up.jpg"
+    );
+    let texture_dn = new THREE.TextureLoader().load(
+        "./assets/skybox/space/dn.jpg"
+    );
+    let texture_rt = new THREE.TextureLoader().load(
+        "./assets/skybox/space/rt.jpg"
+    );
+    let texture_lf = new THREE.TextureLoader().load(
+        "./assets/skybox/space/lf.jpg"
+    );
 
     materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
     materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
@@ -139,7 +139,7 @@ function createScene() {
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableZoom = false;
-    controls.target.set(0, 247, 0);
+    controls.target.set(0, 0, 0);
     //lock y asix
     // controls.minPolarAngle = Math.PI / 2;
     // controls.maxPolarAngle = Math.PI / 2;
@@ -160,7 +160,7 @@ function createScene() {
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 100;
+    ground.position.y = -200;
     ground.renderOrder = 0;
     scene.add(ground);
 
@@ -219,15 +219,14 @@ function onPointerDown(event) {
 
 function onPointerMove(event) {
     if (isDragging && currentIndex !== null) {
-       console.log("move")
         setRaycaster(event);
         raycaster.ray.intersectPlane(plane, planePoint);
-        console.log(planePoint);
         testObj.geometry.attributes.position.setXY(
             currentIndex,
             planePoint.x,
-            planePoint.y,
+            planePoint.y
         );
+
         testObj.geometry.attributes.position.needsUpdate = true;
     }
 }
@@ -240,7 +239,6 @@ function onPointerUp(event) {
 
 function getIndex() {
     intersects = raycaster.intersectObject(points);
-    console.log(intersects);
     if (intersects.length > 0) {
         controls.enabled = false;
     } else {
@@ -269,26 +267,23 @@ function getMouse(event) {
 // test warping
 function createWarpObj() {
     const testImgPath = "assets/TrueViewObj/dragon_noLight02.png";
-    const testGeo = new THREE.PlaneBufferGeometry(200, 150, 10, 10);
+    var testGeo = new THREE.PlaneBufferGeometry(200, 150, 20, 20);
     const testTex = new THREE.TextureLoader().load(testImgPath);
     const testMat = new THREE.MeshBasicMaterial({
         map: testTex,
         transparent: true,
         //   wireframe: true,
+        //   color: 0xff0000,
     });
     testObj = new THREE.Mesh(testGeo, testMat);
-    testObj.position.y = 200;
     scene.add(testObj);
     testObj.renderOrder = 2;
-    //   testObj.geometry.vertices[120].x += 30
-
-    console.log(testObj.geometry);
 
     // add mesh edge line
-    let wireframe = new THREE.WireframeGeometry(testObj.geometry);
-    let line = new THREE.LineSegments(wireframe);
-    line.material.color.setHex(0xff0000);
-    testObj.add(line);
+    //  let wireframe = new THREE.WireframeGeometry(testObj.geometry);
+    //  let line = new THREE.LineSegments(wireframe);
+    //  line.material.color.setHex(0xff0000);
+    //  testObj.add(line);
 
     // add point
     points = new THREE.Points(
@@ -296,18 +291,26 @@ function createWarpObj() {
         new THREE.PointsMaterial({
             size: 3,
             color: "yellow",
+            // opacity:0,
+            // transparent: true,
         })
     );
-    testObj.add(points);
+    scene.add(points);
+
+    /* ***
+    /  the geometry's vertex position did'nt update after mesh translation
+    /  like testObj.position.y = 100, need to figure out why
+    */
+    // testObj.geometry.translate(0,100,0);
 }
 
 function createTrueViewObj(objIndex) {
-   const IMG_PATH = "assets/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
-   const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
-      imgWidth = tex.image.width;
-      imgHeight = tex.image.height;
-      console.log("imgWidth = ", imgWidth, " imgHeight = ", imgHeight);
-   });
+    const IMG_PATH = "assets/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
+    const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
+        imgWidth = tex.image.width;
+        imgHeight = tex.image.height;
+        console.log("imgWidth = ", imgWidth, " imgHeight = ", imgHeight);
+    });
 
     // targetObj
     const TrueViewGeometry = new THREE.PlaneBufferGeometry(200, 150, 4, 4);
