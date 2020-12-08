@@ -1,7 +1,7 @@
-import * as THREE from "../node_modules/three/build/three.module.js";
-import Stats from "../node_modules/three/examples/jsm/libs/stats.module.js";
-import { OrbitControls } from "../node_modules/three/examples/jsm/controls/OrbitControls.js";
-import { GUI } from "../node_modules/three/examples/jsm/libs/dat.gui.module.js";
+import * as THREE from "three";
+import Stats from "stats-js";
+import { GUI } from "dat.gui";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import BasicNoLight from "./shader/BasicNoLight/index.js";
 
 var SCREEN_WIDTH = window.innerWidth;
