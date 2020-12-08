@@ -3,6 +3,7 @@ import Stats from "stats-js";
 import { GUI } from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import BasicNoLight from "./shader/BasicNoLight/index.js";
+import { getMeshCoords, getGeometry } from "./delaunator.js";
 
 var SCREEN_WIDTH = window.innerWidth;
 var SCREEN_HEIGHT = window.innerHeight;
@@ -56,8 +57,10 @@ var isDragging = false;
 var currentIndex = null;
 var planePoint = new THREE.Vector3();
 var planeNormal = new THREE.Vector3();
-var testObj = null;
+var warpObj = null;
 var points = null;
+var wireframe = null;
+var line = null;
 
 createScene();
 animate();
@@ -95,48 +98,24 @@ function createScene() {
     scene.add(light);
 
     // SKYBOX;
-    let materialArray = [];
-    let texture_ft = new THREE.TextureLoader().load(
-        "./assets/skybox/space/ft.jpg"
-    );
-    let texture_bk = new THREE.TextureLoader().load(
-        "./assets/skybox/space/bk.jpg"
-    );
-    let texture_up = new THREE.TextureLoader().load(
-        "./assets/skybox/space/up.jpg"
-    );
-    let texture_dn = new THREE.TextureLoader().load(
-        "./assets/skybox/space/dn.jpg"
-    );
-    let texture_rt = new THREE.TextureLoader().load(
-        "./assets/skybox/space/rt.jpg"
-    );
-    let texture_lf = new THREE.TextureLoader().load(
-        "./assets/skybox/space/lf.jpg"
-    );
-
-    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
-    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
-    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_up }));
-    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_dn }));
-    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_rt }));
-    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_lf }));
-
-    for (let i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
-
-    let skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
-    let skybox = new THREE.Mesh(skyboxGeo, materialArray);
-    scene.add(skybox);
+    scene.background = new THREE.CubeTextureLoader()
+    .setPath( './assets/skybox/space/' )
+    .load( [
+       'ft.jpg',
+       'bk.jpg',
+       'up.jpg',
+       'dn.jpg',
+       'rt.jpg',
+       'lf.jpg'
+    ] );
 
     // RENDERER
-
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     container.appendChild(renderer.domElement);
 
     // CONTROLS
-
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableZoom = false;
     controls.target.set(0, 0, 0);
@@ -195,7 +174,6 @@ function onDocumentKeyDown(event) {
 }
 
 function initGUI() {
-    //gui
     var gui = new GUI();
     gui.width = 300;
 
@@ -221,13 +199,12 @@ function onPointerMove(event) {
     if (isDragging && currentIndex !== null) {
         setRaycaster(event);
         raycaster.ray.intersectPlane(plane, planePoint);
-        testObj.geometry.attributes.position.setXY(
+        warpObj.geometry.attributes.position.setXY(
             currentIndex,
             planePoint.x,
             planePoint.y
         );
-
-        testObj.geometry.attributes.position.needsUpdate = true;
+        warpObj.geometry.attributes.position.needsUpdate = true;
     }
 }
 
@@ -267,7 +244,7 @@ function getMouse(event) {
 // test warping
 function createWarpObj() {
     const testImgPath = "assets/TrueViewObj/dragon_noLight02.png";
-    var testGeo = new THREE.PlaneBufferGeometry(200, 150, 20, 20);
+    var testGeo = new THREE.PlaneBufferGeometry(200, 150, 10, 10);
     const testTex = new THREE.TextureLoader().load(testImgPath);
     const testMat = new THREE.MeshBasicMaterial({
         map: testTex,
@@ -275,19 +252,23 @@ function createWarpObj() {
         //   wireframe: true,
         //   color: 0xff0000,
     });
-    testObj = new THREE.Mesh(testGeo, testMat);
-    scene.add(testObj);
-    testObj.renderOrder = 2;
+    //  const testPoints = [-10,-10,0, 10,-10,0 ,10,10,0, -10,10,0];
+    //  const geo = getGeometry(testPoints, 200, 150);
+    //  warpObj = new THREE.Mesh(geo, testMat);
+
+    warpObj = new THREE.Mesh(testGeo, testMat);
+    scene.add(warpObj);
+    warpObj.renderOrder = 2;
 
     // add mesh edge line
-    //  let wireframe = new THREE.WireframeGeometry(testObj.geometry);
-    //  let line = new THREE.LineSegments(wireframe);
-    //  line.material.color.setHex(0xff0000);
-    //  testObj.add(line);
+    wireframe = new THREE.WireframeGeometry(warpObj.geometry);
+    line = new THREE.LineSegments(wireframe);
+    line.material.color.setHex(0xff0000);
+    scene.add(line);
 
-    // add point
+    // add vertices point
     points = new THREE.Points(
-        testObj.geometry,
+        warpObj.geometry,
         new THREE.PointsMaterial({
             size: 3,
             color: "yellow",
@@ -299,9 +280,9 @@ function createWarpObj() {
 
     /* ***
     /  the geometry's vertex position did'nt update after mesh translation
-    /  like testObj.position.y = 100, need to figure out why
+    /  like warpObj.position.y = 100, need to figure out why
     */
-    // testObj.geometry.translate(0,100,0);
+    // warpObj.geometry.translate(0,100,0);
 }
 
 function createTrueViewObj(objIndex) {
