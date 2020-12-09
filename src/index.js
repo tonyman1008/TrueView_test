@@ -29,7 +29,7 @@ const TrueViewObj = function (
    // this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["nissan90"]; // need user input
+const IMG_NAMES = ["nissan90_optim"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
 var imgHeight = 0;
@@ -69,7 +69,7 @@ function createScene() {
       1,
       10000
    );
-   camera.position.set(0, 247, 1200);
+   camera.position.set(0, 431, 1853);
 
    // SCENE
 
@@ -158,7 +158,7 @@ function createScene() {
    });
    const ground = new THREE.Mesh(groundGeo, groundMat);
    ground.rotation.x = -Math.PI / 2;
-   ground.position.y = 0;
+   ground.position.y = -62.5;
    // ground.renderOrder = 0;
    scene.add(ground);
 
