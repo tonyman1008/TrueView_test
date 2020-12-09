@@ -3,13 +3,14 @@ import Stats from "stats-js";
 import { GUI } from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import BasicNoLight from "./shader/BasicNoLight/index.js";
-import { getMeshCoords, getGeometry } from "./delaunator.js";
+import { getGeometry } from "./delaunator.js";
+import MeshEditor from "./meshEditor.js";
 
-var SCREEN_WIDTH = window.innerWidth;
-var SCREEN_HEIGHT = window.innerHeight;
+let SCREEN_WIDTH = window.innerWidth;
+let SCREEN_HEIGHT = window.innerHeight;
 
-var container, stats;
-var camera, scene, renderer, controls;
+let container, stats;
+let camera, scene, renderer, controls;
 
 const testCount = 1;
 const IMG_COUNT = 30; // need user input
@@ -33,14 +34,14 @@ const TrueViewObjAry = [];
 const IMG_NAMES = ["dragon90"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
-var imgHeight = 0;
-var imgWidth = 0;
+let imgHeight = 0;
+let imgWidth = 0;
 
 const baseImg = "assets/materials/base.jpg";
 const baseMap = new THREE.TextureLoader().load(baseImg);
 const groundImg = "assets/materials/ground.jpg";
 
-var guiParams = {
+let guiParams = {
     distanceToObj: 0,
     PolarAngle: 0,
     AzimuthalAngle: 0,
@@ -49,23 +50,20 @@ var guiParams = {
     autoRotateSpeed: 2,
 };
 
-const raycaster = new THREE.Raycaster();
-// raycaster.params.Points.threshold = 0.25;
-var mouse = new THREE.Vector2();
-var intersects = null;
-var isDragging = false;
-var currentIndex = null;
-var planePoint = new THREE.Vector3();
-var planeNormal = new THREE.Vector3();
-var warpObj = null;
-var points = null;
-var wireframe = null;
-var line = null;
+let warpObj = null;
+let wireframe = null;
+let line = null;
+let verticespoints = null;
 
 createScene();
 animate();
-
-var plane = new THREE.Plane();
+initGUI();
+// //init object
+// for (let i = 0; i < testCount; i++) {
+//    createTrueViewObj(i);
+// }
+createWarpObj();
+const meshEditor = new MeshEditor(verticespoints,warpObj,camera,controls);
 
 function getUrlImageCount() {
     var getUrlStr = location.href;
@@ -98,39 +96,35 @@ function createScene() {
     scene.add(light);
 
     // SKYBOX;
+
     scene.background = new THREE.CubeTextureLoader()
-    .setPath( './assets/skybox/space/' )
-    .load( [
-       'ft.jpg',
-       'bk.jpg',
-       'up.jpg',
-       'dn.jpg',
-       'rt.jpg',
-       'lf.jpg'
-    ] );
+        .setPath("./assets/skybox/space/")
+        .load(["ft.jpg", "bk.jpg", "up.jpg", "dn.jpg", "rt.jpg", "lf.jpg"]);
 
     // RENDERER
+
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     container.appendChild(renderer.domElement);
 
     // CONTROLS
+
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableZoom = false;
     controls.target.set(0, 0, 0);
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 2;
     //lock y asix
     // controls.minPolarAngle = Math.PI / 2;
     // controls.maxPolarAngle = Math.PI / 2;
-    controls.autoRotate = false;
-    controls.autoRotateSpeed = 2;
 
     // STATS
 
     stats = new Stats();
     container.appendChild(stats.dom);
 
-    // Ground
+    // GROUND
     const groundGeo = new THREE.PlaneGeometry(1000, 1000);
     const groundMap = new THREE.TextureLoader().load(groundImg);
     const groundMat = new THREE.MeshBasicMaterial({
@@ -145,18 +139,6 @@ function createScene() {
 
     window.addEventListener("resize", onWindowResize, false);
     document.addEventListener("keydown", onDocumentKeyDown, false);
-
-    document.addEventListener("pointerdown", onPointerDown, false);
-    document.addEventListener("pointermove", onPointerMove, false);
-    document.addEventListener("pointerup", onPointerUp, false);
-
-    initGUI();
-
-    // //init object
-    // for (let i = 0; i < testCount; i++) {
-    //    createTrueViewObj(i);
-    // }
-    createWarpObj();
 }
 
 function onDocumentKeyDown(event) {
@@ -189,62 +171,10 @@ function initGUI() {
     gui.add(camera.position, "y").name("Camera Pos Y").listen();
 }
 
-function onPointerDown(event) {
-    setRaycaster(event);
-    getIndex();
-    isDragging = true;
-}
-
-function onPointerMove(event) {
-    if (isDragging && currentIndex !== null) {
-        setRaycaster(event);
-        raycaster.ray.intersectPlane(plane, planePoint);
-        warpObj.geometry.attributes.position.setXY(
-            currentIndex,
-            planePoint.x,
-            planePoint.y
-        );
-        warpObj.geometry.attributes.position.needsUpdate = true;
-    }
-}
-
-function onPointerUp(event) {
-    isDragging = false;
-    currentIndex = null;
-    controls.enabled = true;
-}
-
-function getIndex() {
-    intersects = raycaster.intersectObject(points);
-    if (intersects.length > 0) {
-        controls.enabled = false;
-    } else {
-        currentIndex = null;
-        return;
-    }
-    currentIndex = intersects[0].index;
-    setPlane(intersects[0].point);
-}
-
-function setPlane(point) {
-    planeNormal.subVectors(camera.position, point).normalize();
-    plane.setFromNormalAndCoplanarPoint(planeNormal, point);
-}
-
-function setRaycaster(event) {
-    getMouse(event);
-    raycaster.setFromCamera(mouse, camera);
-}
-
-function getMouse(event) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}
-
 // test warping
 function createWarpObj() {
     const testImgPath = "assets/TrueViewObj/dragon_noLight02.png";
-    var testGeo = new THREE.PlaneBufferGeometry(200, 150, 10, 10);
+    const testGeo = new THREE.PlaneBufferGeometry(200, 150, 10, 10);
     const testTex = new THREE.TextureLoader().load(testImgPath);
     const testMat = new THREE.MeshBasicMaterial({
         map: testTex,
@@ -261,13 +191,17 @@ function createWarpObj() {
     warpObj.renderOrder = 2;
 
     // add mesh edge line
-    wireframe = new THREE.WireframeGeometry(warpObj.geometry);
-    line = new THREE.LineSegments(wireframe);
-    line.material.color.setHex(0xff0000);
+    const testMat2 = new THREE.MeshBasicMaterial({
+        // transparent: true,
+          wireframe: true,
+          color: 0xff0000,
+    });
+    line = new THREE.Mesh(testGeo,testMat2);
+    // line.material.color.setHex(0xff0000);
     scene.add(line);
 
     // add vertices point
-    points = new THREE.Points(
+    verticespoints = new THREE.Points(
         warpObj.geometry,
         new THREE.PointsMaterial({
             size: 3,
@@ -276,7 +210,7 @@ function createWarpObj() {
             // transparent: true,
         })
     );
-    scene.add(points);
+    scene.add(verticespoints);
 
     /* ***
     /  the geometry's vertex position did'nt update after mesh translation
