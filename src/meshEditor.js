@@ -1,7 +1,6 @@
 import * as THREE from "three";
 
-function MeshEditor( _meshObj, _camera, _controls) {
-
+function MeshEditor(_meshObj, _camera, _controls) {
     let meshObj = _meshObj;
     let camera = _camera;
     let controls = _controls;
@@ -32,7 +31,7 @@ function MeshEditor( _meshObj, _camera, _controls) {
             size: 10,
             color: "yellow",
         });
-        verticesPoints = new THREE.Points(meshObj.geometry,verticesMat);
+        verticesPoints = new THREE.Points(meshObj.geometry, verticesMat);
         verticesPoints.renderOrder = 4;
 
         meshObj.add(verticesPoints);
@@ -72,13 +71,13 @@ function MeshEditor( _meshObj, _camera, _controls) {
     function onPointerUp(event) {
         isDragging = false;
         currentIndex = null;
-        controls.enabled = true;
+        if (controls !== null) controls.enabled = true;
     }
 
     function getIndex() {
         intersects = raycaster.intersectObject(verticesPoints);
         if (intersects.length > 0) {
-            controls.enabled = false;
+            if (controls !== null) controls.enabled = false;
         } else {
             currentIndex = null;
             return;
