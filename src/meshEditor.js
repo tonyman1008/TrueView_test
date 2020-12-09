@@ -1,11 +1,15 @@
 import * as THREE from "three";
 
-function MeshEditor(_verticesPoints,_meshObj,camera,controls) {
+function MeshEditor( _meshObj, _camera, _controls) {
 
-    const verticesPoints = _verticesPoints;
-    const meshObj = _meshObj;
+    let meshObj = _meshObj;
+    let camera = _camera;
+    let controls = _controls;
     const raycaster = new THREE.Raycaster();
     // raycaster.params.Points.threshold = 0.25;
+
+    let verticesPoints = null;
+    let wireframe = null;
 
     let mouse = new THREE.Vector2();
     let intersects = null;
@@ -17,9 +21,34 @@ function MeshEditor(_verticesPoints,_meshObj,camera,controls) {
 
     init();
 
-    function init(){
-        attach();
-    };
+    function init() {
+        createVerticesPoints();
+        createWireframe();
+        attachPointerEvent();
+    }
+
+    function createVerticesPoints() {
+        const verticesMat = new THREE.PointsMaterial({
+            size: 10,
+            color: "yellow",
+        });
+        verticesPoints = new THREE.Points(meshObj.geometry,verticesMat);
+        verticesPoints.renderOrder = 4;
+
+        meshObj.add(verticesPoints);
+    }
+
+    function createWireframe() {
+        const wireframeMat = new THREE.MeshBasicMaterial({
+            // transparent: true,
+            wireframe: true,
+            color: 0xff0000,
+        });
+        wireframe = new THREE.Mesh(meshObj.geometry, wireframeMat);
+        wireframe.renderOrder = 3;
+
+        meshObj.add(wireframe);
+    }
 
     function onPointerDown(event) {
         setRaycaster(event);
@@ -31,12 +60,12 @@ function MeshEditor(_verticesPoints,_meshObj,camera,controls) {
         if (isDragging && currentIndex !== null) {
             setRaycaster(event);
             raycaster.ray.intersectPlane(plane, planePoint);
-            _meshObj.geometry.attributes.position.setXY(
+            meshObj.geometry.attributes.position.setXY(
                 currentIndex,
                 planePoint.x,
                 planePoint.y
             );
-            _meshObj.geometry.attributes.position.needsUpdate = true;
+            meshObj.geometry.attributes.position.needsUpdate = true;
         }
     }
 
@@ -73,19 +102,19 @@ function MeshEditor(_verticesPoints,_meshObj,camera,controls) {
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     }
 
-    function attach(){
+    function attachPointerEvent() {
         document.addEventListener("pointerdown", onPointerDown, false);
         document.addEventListener("pointermove", onPointerMove, false);
         document.addEventListener("pointerup", onPointerUp, false);
     }
-    
-    function detach(){
+
+    function detachPointerEvent() {
         document.removeEventListener("pointerdown", onPointerDown, false);
         document.removeEventListener("pointermove", onPointerMove, false);
         document.removeEventListener("pointerup", onPointerUp, false);
     }
 
-    this.detach = detach;
+    this.detachPointerEvent = detachPointerEvent;
 }
 
 export default MeshEditor;

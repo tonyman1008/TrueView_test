@@ -51,9 +51,6 @@ let guiParams = {
 };
 
 let warpObj = null;
-let wireframe = null;
-let line = null;
-let verticespoints = null;
 
 createScene();
 animate();
@@ -63,7 +60,7 @@ initGUI();
 //    createTrueViewObj(i);
 // }
 createWarpObj();
-const meshEditor = new MeshEditor(verticespoints,warpObj,camera,controls);
+const meshEditor = new MeshEditor(warpObj,camera,controls);
 
 function getUrlImageCount() {
     var getUrlStr = location.href;
@@ -189,28 +186,6 @@ function createWarpObj() {
     warpObj = new THREE.Mesh(testGeo, testMat);
     scene.add(warpObj);
     warpObj.renderOrder = 2;
-
-    // add mesh edge line
-    const testMat2 = new THREE.MeshBasicMaterial({
-        // transparent: true,
-          wireframe: true,
-          color: 0xff0000,
-    });
-    line = new THREE.Mesh(testGeo,testMat2);
-    // line.material.color.setHex(0xff0000);
-    scene.add(line);
-
-    // add vertices point
-    verticespoints = new THREE.Points(
-        warpObj.geometry,
-        new THREE.PointsMaterial({
-            size: 3,
-            color: "yellow",
-            // opacity:0,
-            // transparent: true,
-        })
-    );
-    scene.add(verticespoints);
 
     /* ***
     /  the geometry's vertex position did'nt update after mesh translation
