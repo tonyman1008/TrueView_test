@@ -6,10 +6,9 @@ function MatchPointsLoader() {
         return new Promise((resolve,reject)=>{
             const onLoad = (jsonFile)=>{
                 let matchPointsData = JSON.parse(jsonFile);
-                console.log(matchPointsData);
                 resolve(matchPointsData);
             };
-            loader.load(url, onload,undefined,reject);
+            loader.load(url, onLoad,undefined,reject);
         })
     }
 

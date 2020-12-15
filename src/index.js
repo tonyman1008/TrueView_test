@@ -6,6 +6,7 @@ import BasicNoLight from "./shader/BasicNoLight/index.js";
 import { getGeometry } from "./delaunator.js";
 import MeshEditor from "./meshEditor.js";
 import MatchPointsLoader from "./matchPointsLoader.js";
+import { warp } from "./warping.js";
 
 let SCREEN_WIDTH = window.innerWidth;
 let SCREEN_HEIGHT = window.innerHeight;
@@ -52,16 +53,14 @@ let guiParams = {
 };
 
 let warpObj = null;
+const matchPointsLoader = new MatchPointsLoader();
+const meshEditor = new MeshEditor(camera, controls);
 
 createScene();
 animate();
 initGUI();
-// //init object
-// for (let i = 0; i < testCount; i++) {
-//    createTrueViewObj(i);
-// }
 createWarpObj();
-// const meshEditor = new MeshEditor(warpObj, camera, controls);
+
 
 function getUrlImageCount() {
     var getUrlStr = location.href;
@@ -179,48 +178,36 @@ function createWarpObj() {
         transparent: true,
         side: THREE.DoubleSide,
     });
-
+    warpObj = new THREE.Mesh(testGeo, testMat);
+    warpObj.renderOrder = 2;
+    scene.add(warpObj);
 
     // The image points anchor is (0,0) => (left,top)
     // so need to conver to the geometry center (middle,middle)
-    // const testPoints = [334.85833740234375 - 400, 300 - 242.45948791503906, 0];
-
-    // temp test
-    let testPoints = [];
-    let matchPointsJsonData = null;
-    const loader = new THREE.FileLoader();
-    loader.load("assets/MatchPoints/MatchPoints.json", (jsonFile) => {
-        matchPointsJsonData = JSON.parse(jsonFile);
-        let matchPointsArray = matchPointsJsonData.matchPoints;
-        let width = 800;
-        let height =600;
-        for (let i = 0; i < matchPointsArray.length; i++)
-        {
-            let singlePoint = [matchPointsArray[i].keyPointOne[0]-width/2,height/2 -matchPointsArray[i].keyPointOne[1],0];
-            testPoints = testPoints.concat(singlePoint);
-        }
-        let geo = getGeometry(testPoints,800,600);
-        
-        warpObj = new THREE.Mesh(geo, testMat);
-        warpObj.geometry.scale(0.25, 0.25, 0.25);
-        warpObj.renderOrder = 2;
-        scene.add(warpObj);
-        const meshEditor = new MeshEditor(warpObj, camera, controls);
-    });
-
-    // const matchPointsLoader = new MatchPointsLoader();
-    // matchPointsLoader
-    //     .loadPoints("assets/MatchPoints/MatchPoints.json")
-    //     .then((matchPoints) => {
-    //         testPoints = matchPoints;
-    //         console.log(testPoints);
-    //         let geo = getGeometry(testPoints, 800, 600);
-    //         warpObj.geometry.dispose();
-    //         warpObj.geometry = geo;
-    //     })
-    //     .catch((err) => {
-    //         console.log(err);
-    //     });
+    matchPointsLoader
+        .loadPoints("assets/MatchPoints/MatchPoints.json")
+        .then((matchPointsJsonData) => {
+            let testPoints = [];
+            let matchPointsArray = matchPointsJsonData.matchPoints;
+            let width = 800;
+            let height = 600;
+            for (let i = 0; i < matchPointsArray.length; i++) {
+                let singlePoint = [
+                    matchPointsArray[i].keyPointOne[0] - width / 2,
+                    height / 2 - matchPointsArray[i].keyPointOne[1],
+                    0,
+                ];
+                testPoints = testPoints.concat(singlePoint);
+            }
+            let geo = getGeometry(testPoints, width, height);
+            warpObj.geometry.dispose();
+            warpObj.geometry = geo;
+            warpObj.geometry.scale(0.25,0.25,0.25);
+            meshEditor.setTargetObj(warpObj);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
 
     /* ***
     /  the geometry's vertex position did'nt update after mesh translation

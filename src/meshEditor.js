@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
-function MeshEditor(_meshObj, _camera, _controls) {
-    let meshObj = _meshObj;
+function MeshEditor(_camera, _controls) {
+    let meshObj = null;
     let camera = _camera;
     let controls = _controls;
     const raycaster = new THREE.Raycaster();
@@ -18,12 +18,27 @@ function MeshEditor(_meshObj, _camera, _controls) {
     let planeNormal = new THREE.Vector3();
     let plane = new THREE.Plane();
 
-    init();
-
-    function init() {
+    
+    function setTargetObj(Obj) {
+        meshObj = Obj;
         createVerticesPoints();
         createWireframe();
+
+        //when target object is set
         attachPointerEvent();
+    }
+
+    function updateGeometry() {
+        meshObj.remove(verticesPoints);
+        if (verticesPoints.geometry !== null) verticesPoints.geometry.dispose();
+        if (verticesPoints.material !== null) verticesPoints.material.dispose();
+
+        meshObj.remove(wireframe);
+        if (wireframe.geometry !== null) wireframe.geometry.dispose();
+        if (wireframe.material !== null) wireframe.material.dispose();
+
+        createVerticesPoints();
+        createWireframe();
     }
 
     function createVerticesPoints() {
@@ -114,6 +129,8 @@ function MeshEditor(_meshObj, _camera, _controls) {
     }
 
     this.detachPointerEvent = detachPointerEvent;
+    this.updateGeometry = updateGeometry;
+    this.setTargetObj = setTargetObj;
 }
 
 export default MeshEditor;
