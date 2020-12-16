@@ -52,23 +52,14 @@ let guiParams = {
     autoRotateSpeed: 2,
 };
 
-let warpObj = null;
 const matchPointsLoader = new MatchPointsLoader();
-const meshEditor = new MeshEditor(camera, controls);
+let warpObj = null;
+let meshEditor = null
 
-createScene();
+init();
 animate();
-initGUI();
-createWarpObj();
 
-
-function getUrlImageCount() {
-    var getUrlStr = location.href;
-    var url = new URL(getUrlStr);
-    IMG_COUNT = url.searchParams.get("count");
-}
-
-function createScene() {
+function init() {
     container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -136,6 +127,11 @@ function createScene() {
 
     window.addEventListener("resize", onWindowResize, false);
     document.addEventListener("keydown", onDocumentKeyDown, false);
+
+    //Scene create complete
+    initGUI();
+    createWarpObj();
+    meshEditor = new MeshEditor(camera,controls);
 }
 
 function onDocumentKeyDown(event) {
@@ -202,7 +198,7 @@ function createWarpObj() {
             let geo = getGeometry(testPoints, width, height);
             warpObj.geometry.dispose();
             warpObj.geometry = geo;
-            warpObj.geometry.scale(0.25,0.25,0.25);
+            warpObj.geometry.scale(0.25, 0.25, 0.25);
             meshEditor.setTargetObj(warpObj);
         })
         .catch((err) => {

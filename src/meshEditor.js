@@ -23,7 +23,6 @@ function MeshEditor(_camera, _controls) {
         meshObj = Obj;
         createVerticesPoints();
         createWireframe();
-
         //when target object is set
         attachPointerEvent();
     }
