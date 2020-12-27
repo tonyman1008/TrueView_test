@@ -6,18 +6,22 @@ import BasicNoLight from "./shader/BasicNoLight/index.js";
 import { getGeometry } from "./delaunator.js";
 import MeshEditor from "./meshEditor.js";
 import MatchPointsLoader from "./matchPointsLoader.js";
-import { warp } from "./warping.js";
+import { Warp } from "./warping.js";
 
 let SCREEN_WIDTH = window.innerWidth;
 let SCREEN_HEIGHT = window.innerHeight;
-
 let container, stats;
 let camera, scene, renderer, controls;
 
-const testCount = 1;
-const IMG_COUNT = 30; // need user input
+/**TrueView */
+const baseImg = "assets/materials/base.jpg";
+const baseMap = new THREE.TextureLoader().load(baseImg);
+const groundImg = "assets/materials/ground.jpg";
+
+const TV_TEST_COUNT = 1;
+const TV_CHART_COUNT = 30; // need user input
 const NUMBER_OF_ROW = 5; // constraint
-const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
+const NUMBER_OF_COLUMN = Math.ceil(TV_CHART_COUNT / NUMBER_OF_ROW);
 
 const TrueViewObj = function (
     ImgName,
@@ -33,16 +37,14 @@ const TrueViewObj = function (
     this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["dragon90"]; // need user input
+const TV_IMG_NAMES = ["dragon90"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 
 let imgHeight = 0;
 let imgWidth = 0;
+////
 
-const baseImg = "assets/materials/base.jpg";
-const baseMap = new THREE.TextureLoader().load(baseImg);
-const groundImg = "assets/materials/ground.jpg";
-
+/**GUI */
 let guiParams = {
     distanceToObj: 0,
     PolarAngle: 0,
@@ -50,11 +52,26 @@ let guiParams = {
     position: 0,
     enableRotate: true,
     autoRotateSpeed: 2,
+    warpRatio: 0,
+};
+////
+
+/**Warping */
+const WarpingObj = function (targetObj, OriginVertices) {
+    this.targetObj = targetObj;
+    this.OriginVertices = OriginVertices;
 };
 
+const WarpingObjImgPath = "assets/TrueViewObj/";
+const WarpingObjImgName = [
+    "dragon_noLight02",
+    "dragon_noLight02",
+    "dragon_noLight03",
+];
+const WarpingObjAry = [];
+
 const matchPointsLoader = new MatchPointsLoader();
-let warpObj = null;
-let meshEditor = null
+let meshEditor = null;
 
 init();
 animate();
@@ -71,7 +88,7 @@ function init() {
         1,
         10000
     );
-    camera.position.set(0, 0, 500);
+    camera.position.set(0, 0, 550);
 
     // SCENE
 
@@ -130,8 +147,16 @@ function init() {
 
     //Scene create complete
     initGUI();
-    createWarpObj();
-    meshEditor = new MeshEditor(camera,controls);
+    meshEditor = new MeshEditor(camera, controls);
+
+    let p1 = createWarpObj(0,"src");
+    let p2 = createWarpObj(1,"src");
+    let p3 = createWarpObj(2,"tgt");
+    Promise.all([p1,p2,p3]).then(()=>{
+        console.log("create warp obj complete");
+        WarpingObjAry[0].targetObj.translateX(-220);
+        WarpingObjAry[2].targetObj.translateX(220);
+    })
 }
 
 function onDocumentKeyDown(event) {
@@ -162,25 +187,30 @@ function initGUI() {
         controls.autoRotateSpeed = guiParams.autoRotateSpeed;
     });
     gui.add(camera.position, "y").name("Camera Pos Y").listen();
+    gui.add(guiParams, "warpRatio", 0, 100).onChange(() => {
+        Warp(WarpingObjAry[1].targetObj, WarpingObjAry[0].OriginVertices, WarpingObjAry[2].OriginVertices, guiParams.warpRatio / 100);
+    });
 }
 
 // test warping
-function createWarpObj() {
-    const testImgPath = "assets/TrueViewObj/dragon_noLight02.png";
+function createWarpObj(objIndex,objType) {
+    const testImgPath = WarpingObjImgPath + WarpingObjImgName[objIndex] + ".png";
     const testGeo = new THREE.PlaneBufferGeometry(800, 600, 10, 10);
     const testTex = new THREE.TextureLoader().load(testImgPath);
     const testMat = new THREE.MeshBasicMaterial({
         map: testTex,
         transparent: true,
         side: THREE.DoubleSide,
+        depthWrite: false,
     });
-    warpObj = new THREE.Mesh(testGeo, testMat);
-    warpObj.renderOrder = 2;
-    scene.add(warpObj);
+    let Obj = new THREE.Mesh(testGeo, testMat);
+    Obj.renderOrder = 2;
+    scene.add(Obj);
 
     // The image points anchor is (0,0) => (left,top)
     // so need to conver to the geometry center (middle,middle)
-    matchPointsLoader
+    return new Promise((resolve,reject) => {
+        matchPointsLoader
         .loadPoints("assets/MatchPoints/MatchPoints.json")
         .then((matchPointsJsonData) => {
             let testPoints = [];
@@ -188,32 +218,42 @@ function createWarpObj() {
             let width = 800;
             let height = 600;
             for (let i = 0; i < matchPointsArray.length; i++) {
-                let singlePoint = [
-                    matchPointsArray[i].keyPointOne[0] - width / 2,
-                    height / 2 - matchPointsArray[i].keyPointOne[1],
-                    0,
-                ];
-                testPoints = testPoints.concat(singlePoint);
+                if(objType == "src"){
+                    let singlePoint = [
+                        matchPointsArray[i].keyPointOne[0] - width / 2,
+                        height / 2 - matchPointsArray[i].keyPointOne[1],
+                        0,
+                    ];
+                    testPoints = testPoints.concat(singlePoint);
+                }else if(objType== "tgt"){
+                    let singlePoint = [
+                        matchPointsArray[i].keyPointTwo[0] - width / 2,
+                        height / 2 - matchPointsArray[i].keyPointTwo[1],
+                        0,
+                    ];
+                    testPoints = testPoints.concat(singlePoint);
+                }
             }
             let geo = getGeometry(testPoints, width, height);
-            warpObj.geometry.dispose();
-            warpObj.geometry = geo;
-            warpObj.geometry.scale(0.25, 0.25, 0.25);
-            meshEditor.setTargetObj(warpObj);
+            Obj.geometry.dispose();
+            Obj.geometry = geo;
+            Obj.geometry.scale(0.25, 0.25, 0.25);
+            
+            let srcVertices = Obj.geometry.getAttribute('position').array.slice();
+            let warpObj = new WarpingObj(Obj,srcVertices);
+            meshEditor.setTargetObj(warpObj.targetObj);
+            WarpingObjAry.push(warpObj);
+            resolve();
         })
         .catch((err) => {
-            console.log(err);
+            console.error(err);
+            reject();
         });
-
-    /* ***
-    /  the geometry's vertex position did'nt update after mesh translation
-    /  like warpObj.position.y = 100, need to figure out why
-    */
-    // warpObj.geometry.translate(0,100,0);
+    })
 }
 
 function createTrueViewObj(objIndex) {
-    const IMG_PATH = "assets/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
+    const IMG_PATH = "assets/TrueViewObj/" + TV_IMG_NAMES[objIndex] + ".png";
     const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
         imgWidth = tex.image.width;
         imgHeight = tex.image.height;
@@ -259,7 +299,7 @@ function createTrueViewObj(objIndex) {
     scene.add(baseObj);
 
     const obj = new TrueViewObj(
-        IMG_NAMES[objIndex],
+        TV_IMG_NAMES[objIndex],
         targetObj,
         shader,
         0,
@@ -285,7 +325,9 @@ function rotateObj(objIndex) {
 
 function isAngleChange(objIndex) {
     let AzimuthalAngle = guiParams.AzimuthalAngle;
-    let tmpImgIndex = Math.floor(AzimuthalAngle / Math.ceil(360 / IMG_COUNT));
+    let tmpImgIndex = Math.floor(
+        AzimuthalAngle / Math.ceil(360 / TV_CHART_COUNT)
+    );
 
     if (tmpImgIndex == TrueViewObjAry[objIndex].ImgIndex) {
         return;
@@ -314,7 +356,7 @@ function animate() {
 
     //always face to camera
     if (TrueViewObjAry.length != 0) {
-        for (let i = 0; i < testCount; i++) {
+        for (let i = 0; i < TV_TEST_COUNT; i++) {
             // TrueViewObjAry[i].TargetObj.lookAt(camera.position);
             TrueViewObjAry[i].TargetObj.rotation.y = Math.atan2(
                 camera.position.x - TrueViewObjAry[i].TargetObj.position.x,

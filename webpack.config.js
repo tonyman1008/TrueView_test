@@ -25,6 +25,7 @@ module.exports = {
     ],
     devServer: {
         hot: true,
+        open: true,
         contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 8888,

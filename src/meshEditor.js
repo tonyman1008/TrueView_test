@@ -18,7 +18,6 @@ function MeshEditor(_camera, _controls) {
     let planeNormal = new THREE.Vector3();
     let plane = new THREE.Plane();
 
-    
     function setTargetObj(Obj) {
         meshObj = Obj;
         createVerticesPoints();
@@ -44,9 +43,10 @@ function MeshEditor(_camera, _controls) {
         const verticesMat = new THREE.PointsMaterial({
             size: 10,
             color: "yellow",
+            // depthWrite: false,
         });
         verticesPoints = new THREE.Points(meshObj.geometry, verticesMat);
-        verticesPoints.renderOrder = 4;
+        verticesPoints.renderOrder = 5;
 
         meshObj.add(verticesPoints);
     }
@@ -56,6 +56,7 @@ function MeshEditor(_camera, _controls) {
             // transparent: true,
             wireframe: true,
             color: 0xff0000,
+            // depthWrite: false,
         });
         wireframe = new THREE.Mesh(meshObj.geometry, wireframeMat);
         wireframe.renderOrder = 3;
@@ -64,6 +65,7 @@ function MeshEditor(_camera, _controls) {
     }
 
     function onPointerDown(event) {
+
         setRaycaster(event);
         getIndex();
         isDragging = true;
@@ -71,6 +73,7 @@ function MeshEditor(_camera, _controls) {
 
     function onPointerMove(event) {
         if (isDragging && currentIndex !== null) {
+
             setRaycaster(event);
             raycaster.ray.intersectPlane(plane, planePoint);
             meshObj.geometry.attributes.position.setXY(
@@ -90,14 +93,16 @@ function MeshEditor(_camera, _controls) {
 
     function getIndex() {
         intersects = raycaster.intersectObject(verticesPoints);
+        console.log(intersects)
         if (intersects.length > 0) {
+            console.log("qwer")
+            currentIndex = intersects[0].index;
+            setPlane(intersects[0].point);
             if (controls !== null) controls.enabled = false;
         } else {
             currentIndex = null;
             return;
         }
-        currentIndex = intersects[0].index;
-        setPlane(intersects[0].point);
     }
 
     function setPlane(point) {
