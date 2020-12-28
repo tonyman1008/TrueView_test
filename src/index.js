@@ -38,9 +38,9 @@ const BASE_POS = [new THREE.Vector3(0, 150, 0)];
 var imgHeight = 0;
 var imgWidth = 0;
 
-const baseImg = "asset/materials/base.jpg";
+const baseImg = "assets/materials/base.jpg";
 const baseMap = new THREE.TextureLoader().load(baseImg);
-const groundImg = "asset/materials/ground.jpg";
+const groundImg = "assets/materials/ground.jpg";
 
 var guiParams = {
    distanceToObj: 0,
@@ -85,22 +85,22 @@ function createScene() {
    // SKYBOX;
    let materialArray = [];
    let texture_ft = new THREE.TextureLoader().load(
-      "./asset/skybox/space/ft.jpg"
+      "./assets/skybox/space/ft.jpg"
    );
    let texture_bk = new THREE.TextureLoader().load(
-      "./asset/skybox/space/bk.jpg"
+      "./assets/skybox/space/bk.jpg"
    );
    let texture_up = new THREE.TextureLoader().load(
-      "./asset/skybox/space/up.jpg"
+      "./assets/skybox/space/up.jpg"
    );
    let texture_dn = new THREE.TextureLoader().load(
-      "./asset/skybox/space/dn.jpg"
+      "./assets/skybox/space/dn.jpg"
    );
    let texture_rt = new THREE.TextureLoader().load(
-      "./asset/skybox/space/rt.jpg"
+      "./assets/skybox/space/rt.jpg"
    );
    let texture_lf = new THREE.TextureLoader().load(
-      "./asset/skybox/space/lf.jpg"
+      "./assets/skybox/space/lf.jpg"
    );
 
    materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
@@ -192,7 +192,7 @@ function initGUI() {
 }
 
 function createTrueViewObj(objIndex) {
-   const IMG_PATH = "asset/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
+   const IMG_PATH = "assets/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
    const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
       imgWidth = tex.image.width;
       imgHeight = tex.image.height;
@@ -274,10 +274,10 @@ function rotateObj(objIndex,interPolVal) {
       offsetX2 / NUMBER_OF_ROW,
       offsetY2 / NUMBER_OF_COLUMN
    );
-   console.log("offset1", offsetX, offsetY);
-   console.log("offset2", offsetX2, offsetY2);
+   // console.log("offset1", offsetX, offsetY);
+   // console.log("offset2", offsetX2, offsetY2);
+   // console.log(interPolVal/ANGLE_PER_IMAGE);
    TrueViewObjAry[objIndex].Shader.uniforms.interpVal.value = interPolVal/ANGLE_PER_IMAGE;
-   console.log(interPolVal/ANGLE_PER_IMAGE);
 }
 
 function isAngleChange(objIndex) {

@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
+    mode:'production',
     entry: {
         main: "./src/index.js",
     },
@@ -18,7 +19,7 @@ module.exports = {
         }),
         new CopyPlugin({
             patterns: [
-                { from: "./asset", to: "./asset" },
+                { from: "./assets", to: "./assets" },
             ],
         }),
     ],
@@ -28,4 +29,5 @@ module.exports = {
         compress: true,
         port: 8888,
     },
+    devtool:'eval-cheap-source-map'
 };
