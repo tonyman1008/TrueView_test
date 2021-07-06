@@ -10,10 +10,19 @@ var SCREEN_HEIGHT = window.innerHeight;
 var container, stats;
 var camera, scene, renderer, controls;
 
+const dataSet = [{"name":"balenciagaBag","count":72,"number_row":6,"height":90},
+{"name":"butterfly","count":30,"number_row":5,"height":118},
+{"name":"LV","count":24,"number_row":5,"height":102},];
 const testCount = 1;
-const IMG_COUNT = 30; // need user input
-const NUMBER_OF_ROW = 5; // constraint
-const NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
+let IMG_COUNT = 0; // need user input
+let NUMBER_OF_ROW = 0; // constraint
+let NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
+let IMG_NAMES = ""; // need user input
+let positionY = 0;
+let pauseTimer = false;
+
+const dataName = getUrlDataSetName();
+setDataByName(dataName);
 
 const TrueViewObj = function (
    ImgName,
@@ -29,7 +38,6 @@ const TrueViewObj = function (
    this.BaseObj = BaseObj;
 };
 const TrueViewObjAry = [];
-const IMG_NAMES = ["dragon90"]; // need user input
 const BASE_POS = [new THREE.Vector3(0, -150, 0)];
 
 var imgHeight = 0;
@@ -38,23 +46,37 @@ var imgWidth = 0;
 const baseImg = "assets/materials/base.jpg";
 const baseMap = new THREE.TextureLoader().load(baseImg);
 const groundImg = "assets/materials/ground.jpg";
-
+let tmpImgIndex =0;
 var guiParams = {
    distanceToObj: 0,
    PolarAngle: 0,
    AzimuthalAngle: 0,
    position: 0,
-   enableRotate: true,
+   enableAutoRotate: true,
    autoRotateSpeed: 2,
 };
 
 createScene();
 animate();
+timeout();
 
-function getUrlImageCount() {
+function getUrlDataSetName() {
    var getUrlStr = location.href;
-   var url = new URL(getUrlStr);
-   IMG_COUNT = url.searchParams.get("count");
+   var url = new URLSearchParams(getUrlStr);
+   let dataName = url.searchParams.get("id");
+   return dataName;
+}
+function setDataByName(name) {
+   dataSet.forEach((data)=>{
+      if(data.name==name)
+      {
+         IMG_NAMES = data.name;
+         IMG_COUNT = data.count;
+         NUMBER_OF_ROW = data.number_row; // constraint
+         NUMBER_OF_COLUMN = Math.ceil(IMG_COUNT / NUMBER_OF_ROW);
+         positionY = data.height
+      }
+   })
 }
 
 function createScene() {
@@ -160,20 +182,22 @@ function initGUI() {
    var gui = new GUI();
    gui.width = 300;
 
-   gui.add(guiParams, "distanceToObj").name("Distance").listen();
-   gui.add(guiParams, "PolarAngle").name("Polar Angle(deg)").listen();
-   gui.add(guiParams, "AzimuthalAngle").name("Azimuthal Angle(deg)").listen();
-   gui.add(guiParams, "enableRotate").onChange(() => {
-      controls.autoRotate = guiParams.enableRotate;
+   // gui.add(guiParams, "distanceToObj").name("Distance").listen();
+   // gui.add(guiParams, "PolarAngle").name("Polar Angle(deg)").listen();
+   // gui.add(guiParams, "AzimuthalAngle").name("Azimuthal Angle(deg)").listen();
+   gui.add(guiParams, "enableAutoRotate").onChange(() => {
+      pauseTimer = !guiParams.enableAutoRotate;
+      if(guiParams.enableAutoRotate==true)
+         timeout()
    });
-   gui.add(guiParams, "autoRotateSpeed", -30, 30).onChange(() => {
-      controls.autoRotateSpeed = guiParams.autoRotateSpeed;
-   });
-   gui.add(camera.position, "y").name("Camera Pos Y").listen();
+   // gui.add(guiParams, "autoRotateSpeed", -30, 30).onChange(() => {
+   //    controls.autoRotateSpeed = guiParams.autoRotateSpeed;
+   // });
+   // gui.add(camera.position, "y").name("Camera Pos Y").listen();
 }
 
 function createTrueViewObj(objIndex) {
-   const IMG_PATH = "assets/TrueViewObj/" + IMG_NAMES[objIndex] + ".png";
+   const IMG_PATH = "assets/TrueViewObj/" + IMG_NAMES + ".png";
    const tex = new THREE.TextureLoader().load(IMG_PATH, function (tex) {
       imgWidth = tex.image.width;
       imgHeight = tex.image.height;
@@ -200,7 +224,7 @@ function createTrueViewObj(objIndex) {
    });
 
    const targetObj = new THREE.Mesh(TrueViewGeometry, TrueViewMaterial);
-   targetObj.position.y = 97;
+   targetObj.position.y = positionY;
    targetObj.renderOrder = 2;
 
    // base
@@ -228,6 +252,15 @@ function createTrueViewObj(objIndex) {
    TrueViewObjAry.push(obj);
 }
 
+function timeout() {
+   setTimeout(function () {
+      if(pauseTimer == true)
+         return;
+      addImageIndex();
+      timeout();
+   }, 50);
+}
+
 function rotateObj(objIndex) {
    const offsetX = TrueViewObjAry[objIndex].ImgIndex % NUMBER_OF_ROW;
    const offsetY =
@@ -241,9 +274,19 @@ function rotateObj(objIndex) {
    );
 }
 
+function addImageIndex(){
+   tmpImgIndex++;
+   if(tmpImgIndex >= IMG_COUNT)
+   {
+      tmpImgIndex =0;
+   }
+   TrueViewObjAry[0].ImgIndex = tmpImgIndex;
+   rotateObj(0);
+}
+
 function isAngleChange(objIndex) {
    let AzimuthalAngle = guiParams.AzimuthalAngle;
-   let tmpImgIndex = Math.floor(AzimuthalAngle / Math.ceil(360 / IMG_COUNT));
+   tmpImgIndex = Math.floor(AzimuthalAngle / Math.ceil(360 / IMG_COUNT));
 
    if (tmpImgIndex == TrueViewObjAry[objIndex].ImgIndex) {
       return;
@@ -277,7 +320,10 @@ function animate() {
          camera.position.x - TrueViewObjAry[i].TargetObj.position.x,
          camera.position.z - TrueViewObjAry[i].TargetObj.position.z
          );
-      isAngleChange(i);
+      if(pauseTimer == true)
+      {
+         isAngleChange(i);
+      }
    }
 
    //camera control gui
